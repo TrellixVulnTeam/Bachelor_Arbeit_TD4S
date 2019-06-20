@@ -1,0 +1,8 @@
+NNs with varying input size:
+
+-https://ai.stackexchange.com/questions/2008/how-can-neural-networks-deal-with-varying-input-sizes
+	>Zero Padding impractical (as expected)
+	>RNNs for input vectors with inherent ordering (unsuited?)
+	>recursive NNs: preprocessing: reduce input to vector of fixed (or small) size without losing relevant information ("tree-structure"), then feed to NN
+	>apply convolutions a variable number of times until fixed size is reached
+	>multiple input NNs for input vectors of differing sizes, then combine intermediary representations of fixed size (outputs of input NNs), then process through output NN (only for inputs without specific ordering)
