@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\vpr",
+    "\\vpr\\src",
+    "\\vpr\\src\\place",
+    "\\vpr\\src\\training_data_generation"
+  ],
+  "SelectedNode": "\\vpr\\src\\training_data_generation\\training_data_net_writer.cpp",
+  "PreviewInSolutionExplorer": false
+}
