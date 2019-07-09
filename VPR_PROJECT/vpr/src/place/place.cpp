@@ -36,6 +36,8 @@ using namespace std;
 #include "tatum/echo_writer.hpp"
 #include "tatum/TimingReporter.hpp"
 
+#include "training_data_net_writer.h" //training_data_generation
+
 /************** Types and defines local to place.c ***************************/
 
 /* Cut off for incremental bounding box updates.                          *
@@ -376,6 +378,8 @@ void try_place(t_placer_opts placer_opts,
 
     auto& device_ctx = g_vpr_ctx.device();
     auto& cluster_ctx = g_vpr_ctx.clustering();
+
+	init_net_printing_structures(); //training_data_generation
 
     std::shared_ptr<SetupTimingInfo> timing_info;
     std::shared_ptr<PlacementDelayCalculator> placement_delay_calc;
@@ -1561,6 +1565,8 @@ static void update_net_bb(const ClusterNetId net, int iblk, const ClusterBlockId
 
         if(bb_updated_before[net] == NOT_UPDATED_YET) { //Only once per-net
             get_non_updateable_bb(net, &ts_bb_coord_new[net]);
+			
+			//save_current_net_placement(net); //training_data_generation
         }
     } else {
         //For large nets, update bounding box incrementally
@@ -1577,6 +1583,8 @@ static void update_net_bb(const ClusterNetId net, int iblk, const ClusterBlockId
                 blocks_affected.moved_blocks[iblk].yold + pin_height_offset,
                 blocks_affected.moved_blocks[iblk].xnew + pin_width_offset,
                 blocks_affected.moved_blocks[iblk].ynew + pin_height_offset);
+
+		//save_current_net_placement(net); //training_data_generation
     }
 
 }
@@ -1951,9 +1959,13 @@ static float comp_bb_cost(e_cost_methods method) {
 			if (cluster_ctx.clb_nlist.net_sinks(net_id).size() >= SMALL_NET && method == NORMAL) {
 				get_bb_from_scratch(net_id, &bb_coords[net_id],
 					&bb_num_on_edges[net_id]);
+
+				//save_current_net_placement(net_id); //training_data_generation
 			}
 			else {
 				get_non_updateable_bb(net_id, &bb_coords[net_id]);
+
+				//save_current_net_placement(net_id); //training_data_generation
 			}
 
 			net_cost[net_id] = get_net_cost(net_id, &bb_coords[net_id]);
@@ -2274,6 +2286,8 @@ static double get_net_wirelength_estimate(ClusterNetId net_id, t_bb *bbptr) {
 
 	ncost += (bbptr->ymax - bbptr->ymin + 1) * crossing;
 
+	generate_training_data(net_id, bbptr, ncost);
+
 	return (ncost);
 }
 
@@ -2307,6 +2321,9 @@ static float get_net_cost(ClusterNetId net_id, t_bb *bbptr) {
 
 	ncost += (bbptr->ymax - bbptr->ymin + 1) * crossing
 			* chany_place_cost_fac[bbptr->xmax][bbptr->xmin - 1];
+
+	//save_wiring_cost(net_id, (bbptr->xmax - bbptr->xmin + 1) + (bbptr->ymax - bbptr->ymin + 1), ncost); //training_data_generation
+	generate_training_data(net_id, bbptr, ncost);
 
 	return (ncost);
 }
