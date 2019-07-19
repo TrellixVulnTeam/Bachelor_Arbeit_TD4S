@@ -35,16 +35,6 @@
 #include "place_util.h"
 #include "place_delay_model.h"
 
-struct routing_block_struct {
-	bool is_sink, in_queue;
-	uint16_t x, y, cost;
-	uint8_t direction; //from: 0 left, 1 above, 2 right, 3 below
-};
+void init_net_printing_structures();
 
-static void init_net_printing_structures();
-
-static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float cost);
-
-static uint16_t compute_min_wiring_cost(ClusterNetId net_id, t_bb* bbptr);
-
-static void generate_training_data(ClusterNetId net_id, t_bb* bbptr, float cost);
+void generate_training_data(ClusterNetId net_id, t_bb* bbptr, float cost);
