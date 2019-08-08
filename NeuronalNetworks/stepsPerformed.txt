@@ -1,0 +1,57 @@
+installed pyhon IDE: pyCharm
+installed tensorflow: v=2.0.0-beta1
+	-> requires setuptools v>41.0.0
+		->installed, got error:
+Successfully installed setuptools-41.0.1
+Traceback (most recent call last):
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\Scripts\pip-script.py", line 11, in <module>
+    load_entry_point('pip==19.0.3', 'console_scripts', 'pip')()
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_internal\_
+_init__.py", line 78, in main
+    return command.main(cmd_args)
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_internal\c
+li\base_command.py", line 228, in main
+    timeout=min(5, options.timeout)
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_internal\c
+li\base_command.py", line 93, in _build_session
+    insecure_hosts=options.trusted_hosts,
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_internal\d
+ownload.py", line 344, in __init__
+    self.headers["User-Agent"] = user_agent()
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_internal\d
+ownload.py", line 134, in user_agent
+    setuptools_version = get_installed_version("setuptools")
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_internal\u
+tils\misc.py", line 902, in get_installed_version
+    working_set = pkg_resources.WorkingSet()
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_vendor\pkg
+_resources\__init__.py", line 565, in __init__
+    self.add_entry(entry)
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_vendor\pkg
+_resources\__init__.py", line 621, in add_entry
+    for dist in find_distributions(entry, True):
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_vendor\pkg
+_resources\__init__.py", line 1886, in find_eggs_in_zip
+    if metadata.has_metadata('PKG-INFO'):
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_vendor\pkg
+_resources\__init__.py", line 1405, in has_metadata
+    return self.egg_info and self._has(self._fn(self.egg_info, name))
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_vendor\pkg
+_resources\__init__.py", line 1760, in _has
+    return zip_path in self.zipinfo or zip_path in self._index()
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_vendor\pkg
+_resources\__init__.py", line 1637, in zipinfo
+    return self._zip_manifests.load(self.loader.archive)
+  File "C:\Users\01100\Desktop\Bachelor_Arbeit\NeuronalNetworks\test\venv\lib\site-packages\pip-19.0.3-py3.7.egg\pip\_vendor\pkg
+_resources\__init__.py", line 1594, in load
+    mtime = os.stat(path).st_mtime
+FileNotFoundError: [WinError 2] The system cannot find the file specified: 'C:\\Users\\01100\\Desktop\\Bachelor_Arbeit\\Neuronal
+Networks\\test\\venv\\lib\\site-packages\\setuptools-40.8.0-py3.7.egg'
+
+tensorflow not available on next start
+	-> try to reinstall -> pip not found -> various other problems with python installation
+		-> clean install of python3 (latest stable build) and deinstallation of disribution that came with VS
+			-> reconfigure IDE -> install tensorflow -> working again
+
+
+

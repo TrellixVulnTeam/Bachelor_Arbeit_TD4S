@@ -1,0 +1,3 @@
+saving trained model and using in c++: https://www.tensorflow.org/beta/guide/saved_model
+very basic RNN / LSTM example: https://www.youtube.com/watch?v=iMIWee_PXl8&list=PLVBorYCcu-xX3Ppjb_sqBd_Xf6GqagQyl&index=5
+tensorboard doc: https://www.tensorflow.org/tensorboard/r2/get_started
