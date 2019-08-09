@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData">
+    <serverData>
+      <paths name="Remote Host (d3028190-5b45-4503-98f2-1eae8cfbf15c)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/VPR_PROJECT" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
