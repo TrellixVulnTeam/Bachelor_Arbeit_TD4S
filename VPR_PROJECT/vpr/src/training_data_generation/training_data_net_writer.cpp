@@ -22,7 +22,7 @@ static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float 
 
 void init_net_printing_structures() {
 
-	cout << "please specify training data output base path (ending with '/').\n";
+	cout << "please specify training data output path (ending with '.txt').\n";
 	cin.ignore();
 	getline(cin, current_design_base_path);
 
@@ -323,9 +323,12 @@ outputs the current placement of the net to a new file
 */
 static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float cost) {
 
-	uint16_t number_of_updates = net_update_counter.find(net_id)->second;
-	net_update_counter.erase(net_id);
-	net_update_counter.insert(pair<ClusterNetId, uint16_t>(net_id, number_of_updates + 1)); //TODO too many small files
+    auto& device_ctx = g_vpr_ctx.device();
+    auto& grid = device_ctx.grid;
+
+	//uint16_t number_of_updates = net_update_counter.find(net_id)->second;
+	//net_update_counter.erase(net_id);
+	//net_update_counter.insert(pair<ClusterNetId, uint16_t>(net_id, number_of_updates + 1)); //TODO too many small files
 
 	auto& cluster_ctx = g_vpr_ctx.clustering();
 	auto& place_ctx = g_vpr_ctx.placement();
@@ -334,49 +337,50 @@ static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float 
 	int pnum = cluster_ctx.clb_nlist.net_pin_physical_index(net_id, 0);
 
 	std::stringstream ss;
-	ss << "/" << current_design_base_path << size_t(net_id) << "_" << number_of_updates << ".txt";
+	ss << "/" << current_design_base_path;
 
-	ofstream current_net_placement_file(ss.str(), ios::out | ios::trunc);
+	ofstream current_net_placement_file(ss.str(), ios::out | ios::app);
 	if (current_net_placement_file.is_open())
 	{ //TODO save corrected coordinates, or use raw coords, but then need to: revert conversion in compute_min_wiring_cost(...) and compute alternate BB...
-		current_net_placement_file << "% pin coordinates in x;y pairs, first source, then all sinks, finally HPWL cost (added later)\n";
+		current_net_placement_file << "% pin coordinates in x;y pairs, first source, then all sinks\n";
 		current_net_placement_file << "% net id: ";
 		current_net_placement_file << size_t(net_id);
 		current_net_placement_file << "\n";
 
-		current_net_placement_file << "%source:\n";
-		current_net_placement_file << place_ctx.block_locs[bnum].x + cluster_ctx.clb_nlist.block_type(bnum)->pin_width_offset[pnum];
-		current_net_placement_file << ";";
-		current_net_placement_file << place_ctx.block_locs[bnum].y + cluster_ctx.clb_nlist.block_type(bnum)->pin_height_offset[pnum];
-		current_net_placement_file << " % block num: ";
-		current_net_placement_file << size_t(bnum);
-		current_net_placement_file << ", pin num: ";
-		current_net_placement_file << pnum;
-		current_net_placement_file << "\n";
+        current_net_placement_file << "%BB size: \n";
+        current_net_placement_file << bbptr->xmax - bbptr->xmin;
+        current_net_placement_file << ",";
+        current_net_placement_file << bbptr->ymax - bbptr->ymin;
+        current_net_placement_file << "\n";
 
-		current_net_placement_file << "%sinks:\n";
+		current_net_placement_file << "%source, then sinks, relative coords in BB: \n";
+		int x= place_ctx.block_locs[bnum].x + cluster_ctx.clb_nlist.block_type(bnum)->pin_width_offset[pnum];
+		current_net_placement_file << max(min<int>(x, grid.width() - 2), 1) - bbptr->xmin;
+		current_net_placement_file << ",";
+		int y= place_ctx.block_locs[bnum].y + cluster_ctx.clb_nlist.block_type(bnum)->pin_height_offset[pnum];
+		current_net_placement_file << max(min<int>(y, grid.height() - 2), 1) - bbptr->ymin;
 
 		int i = 0;
 		for (auto pin_id : cluster_ctx.clb_nlist.net_sinks(net_id)) {
+            current_net_placement_file << ";";
 			i++;
 			bnum = cluster_ctx.clb_nlist.pin_block(pin_id);
 			pnum = cluster_ctx.clb_nlist.pin_physical_index(pin_id);
-			current_net_placement_file << place_ctx.block_locs[bnum].x + cluster_ctx.clb_nlist.block_type(bnum)->pin_width_offset[pnum];
-			current_net_placement_file << ";";
-			current_net_placement_file << place_ctx.block_locs[bnum].y + cluster_ctx.clb_nlist.block_type(bnum)->pin_height_offset[pnum];
-			current_net_placement_file << " % block num: ";
-			current_net_placement_file << size_t(bnum);
-			current_net_placement_file << ", pin num: ";
-			current_net_placement_file << pnum;
-			current_net_placement_file << "\n";
+            x= place_ctx.block_locs[bnum].x + cluster_ctx.clb_nlist.block_type(bnum)->pin_width_offset[pnum];
+            current_net_placement_file << max(min<int>(x, grid.width() - 2), 1) - bbptr->xmin;
+			current_net_placement_file << ",";
+            y= place_ctx.block_locs[bnum].y + cluster_ctx.clb_nlist.block_type(bnum)->pin_height_offset[pnum];
+            current_net_placement_file << max(min<int>(y, grid.height() - 2), 1) - bbptr->ymin;
 		}
 
-		current_net_placement_file << "% pure HPWL (half bounding box perimeter) from VPR:\n";
-		current_net_placement_file << (bbptr->xmax - bbptr->xmin + 1) + (bbptr->ymax - bbptr->ymin + 1);
-		current_net_placement_file << "\n";
-		current_net_placement_file << "% wiring cost (corrected HPWL) from VPR:\n";
-		current_net_placement_file << cost;
-		current_net_placement_file << "\n";
+        current_net_placement_file << "\n";
+
+//		current_net_placement_file << "% pure HPWL (half bounding box perimeter) from VPR:\n";
+//		current_net_placement_file << (bbptr->xmax - bbptr->xmin + 1) + (bbptr->ymax - bbptr->ymin + 1);
+//		current_net_placement_file << "\n";
+//		current_net_placement_file << "% wiring cost (corrected HPWL) from VPR:\n";
+//		current_net_placement_file << cost;
+//		current_net_placement_file << "\n";
 		current_net_placement_file << "% pseudo exact wiring cost (min path through grid):\n";
 		current_net_placement_file << compute_min_wiring_cost(net_id, bbptr);
 		current_net_placement_file << "\n";
