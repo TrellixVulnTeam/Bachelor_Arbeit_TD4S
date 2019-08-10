@@ -32,6 +32,8 @@ for line in lines:
             output_costs.append(float(line) / current_normalization_factor)
             state = 0
 
+input_file.close()
+
 # data = np.array(input_coord_lists, dtype= float)
 # target = np.array(output_costs, dtype= float)
 
@@ -111,14 +113,15 @@ for index in range(len(list_of_batches)):
     y_test = np.asarray(list_of_batch_target_lists_validation[index])
 # print(x_train)
 
-    history = model.fit(x_train, y_train, epochs=100, validation_data=(x_test, y_test))
+    history = model.fit(x_train, y_train, epochs=1000, validation_data=(x_test, y_test))
 
     results = model.predict(x_test)
+    print(results[:, 0].shape)
     print(results.shape)
     print(y_test.shape)
     print(y_test.reshape(len(y_test), 1).shape)
-    plt.scatter(range(20), results[:, 0], c='r')
-    plt.scatter(range(20), y_test, c='g')
+    plt.scatter(range(50), results[:50, 0], c='r')
+    plt.scatter(range(50), y_test[:50], c='g')
     plt.show()
 
     plt.plot(history.history['loss'])
