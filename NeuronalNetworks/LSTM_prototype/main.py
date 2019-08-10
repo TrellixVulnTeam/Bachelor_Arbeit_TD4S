@@ -94,7 +94,7 @@ for batch_index in range(len(list_of_batches)):
 
 model = tf.keras.models.Sequential()
 
-model.add(tf.keras.layers.LSTM(10, batch_input_shape=(batch_size, None, 2), return_sequences=False, stateful=True))
+model.add(tf.keras.layers.LSTM(100, batch_input_shape=(batch_size, None, 2), return_sequences=False, stateful=True))
 model.add(tf.keras.layers.Dense(1))
 
 model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['accuracy'])
