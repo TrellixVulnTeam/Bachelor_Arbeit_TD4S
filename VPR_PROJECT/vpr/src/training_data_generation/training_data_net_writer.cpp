@@ -43,7 +43,7 @@ generates training data and saves it
 void generate_training_data(ClusterNetId net_id, t_bb* bbptr, float cost) {
 
     //ignore nets where all sinks have been moved to the location of the source (due to moving perimeter blocks inside for BB computation)
-    if(bbptr->xMax - bbptr->xmin != 0 || bbptr->yMax - bbptr->yMin != 0) {
+    if(bbptr->xmax - bbptr->xmin != 0 || bbptr->ymax - bbptr->ymin != 0) {
         print_current_net_placement(net_id, bbptr, cost);
     }
 
