@@ -9,7 +9,10 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4878f18f-65dc-4f3b-a179-56328a37695c" name="Default Changelist" comment="" />
+    <list default="true" id="4878f18f-65dc-4f3b-a179-56328a37695c" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vpr/src/training_data_generation/training_data_net_writer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/vpr/src/training_data_generation/training_data_net_writer.cpp" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,16 +40,6 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
-  <component name="ProjectConfigurationFiles">
-    <option name="files">
-      <list>
-        <option value="$PROJECT_DIR$/.idea/VPR_PROJECT.iml" />
-        <option value="$PROJECT_DIR$/.idea/misc.xml" />
-        <option value="$PROJECT_DIR$/.idea/vcs.xml" />
-        <option value="$PROJECT_DIR$/.idea/modules.xml" />
-      </list>
-    </option>
-  </component>
   <component name="ProjectId" id="1OjjgLv5NrM7V2Tw70poPu0qDhL" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
@@ -77,6 +70,7 @@
       <workItem from="1563524225146" duration="5560000" />
       <workItem from="1564498015589" duration="9592000" />
       <workItem from="1564605923952" duration="662000" />
+      <workItem from="1565525642837" duration="400000" />
     </task>
     <servers />
   </component>

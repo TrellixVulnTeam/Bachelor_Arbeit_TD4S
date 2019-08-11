@@ -10,10 +10,7 @@ struct routing_block_struct {
     uint8_t direction; //from: 0 left, 1 above, 2 right, 3 below
 };
 
-//static
-unordered_map<ClusterNetId, uint16_t> net_update_counter;
 
-//static
 string current_design_base_path;
 
 static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float cost);
@@ -38,13 +35,6 @@ void init_net_printing_structures() {
 	}
 	test_file.close();
 
-	net_update_counter = {};
-
-	auto& cluster_ctx = g_vpr_ctx.clustering();
-
-	for (auto net_id : cluster_ctx.clb_nlist.nets()) { /* for each net ... */
-		net_update_counter.insert(pair<ClusterNetId, uint16_t>(net_id, 0));
-	}
 }
 
 /*
@@ -52,7 +42,10 @@ generates training data and saves it
 */
 void generate_training_data(ClusterNetId net_id, t_bb* bbptr, float cost) {
 
-	print_current_net_placement(net_id, bbptr, cost);
+    //ignore nets where all sinks have been moved to the location of the source (due to moving perimeter blocks inside for BB computation)
+    if(bbptr->xMax - bbptr->xmin != 0 || bbptr->yMax - bbptr->yMin != 0) {
+        print_current_net_placement(net_id, bbptr, cost);
+    }
 
 }
 
@@ -73,7 +66,7 @@ static uint16_t compute_min_wiring_cost(ClusterNetId net_id, const t_bb* bbptr) 
 	const uint16_t y_size = (bbptr->ymax - bbptr->ymin) + 1;
 	//cout << "grid size: " << x_size << ";" << y_size << "\n";
 	//routing_block_struct** routing_grid = (routing_block_struct**) malloc(x_size * y_size * sizeof(routing_block_struct));//new routing_block_struct[x_size][y_size];
-    ////cout << "grid matrix malloced, size: " << x_size * y_size << "\n";
+    //cout << "grid matrix malloced, size: " << x_size * y_size << "\n";
     routing_block_struct routing_grid[x_size][y_size][1];
     for (int i = 0; i < x_size; i++) {
         //cout <<"flag 0\n";
@@ -326,10 +319,6 @@ static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float 
     auto& device_ctx = g_vpr_ctx.device();
     auto& grid = device_ctx.grid;
 
-	//uint16_t number_of_updates = net_update_counter.find(net_id)->second;
-	//net_update_counter.erase(net_id);
-	//net_update_counter.insert(pair<ClusterNetId, uint16_t>(net_id, number_of_updates + 1)); //TODO too many small files
-
 	auto& cluster_ctx = g_vpr_ctx.clustering();
 	auto& place_ctx = g_vpr_ctx.placement();
 
@@ -341,19 +330,19 @@ static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float 
 
 	ofstream current_net_placement_file(ss.str(), ios::out | ios::app);
 	if (current_net_placement_file.is_open())
-	{ //TODO save corrected coordinates, or use raw coords, but then need to: revert conversion in compute_min_wiring_cost(...) and compute alternate BB...
-		current_net_placement_file << "% pin coordinates in x;y pairs, first source, then all sinks\n";
-		current_net_placement_file << "% net id: ";
-		current_net_placement_file << size_t(net_id);
-		current_net_placement_file << "\n";
+	{
+//		current_net_placement_file << "% pin coordinates in x;y pairs, first source, then all sinks\n";
+//		current_net_placement_file << "% net id: ";
+//		current_net_placement_file << size_t(net_id);
+//		current_net_placement_file << "\n";
 
-        current_net_placement_file << "%BB size: \n";
+//        current_net_placement_file << "%BB size: \n";
         current_net_placement_file << bbptr->xmax - bbptr->xmin;
         current_net_placement_file << ",";
         current_net_placement_file << bbptr->ymax - bbptr->ymin;
         current_net_placement_file << "\n";
 
-		current_net_placement_file << "%source, then sinks, relative coords in BB: \n";
+//		current_net_placement_file << "%source, then sinks, relative coords in BB: \n";
 		int x= place_ctx.block_locs[bnum].x + cluster_ctx.clb_nlist.block_type(bnum)->pin_width_offset[pnum];
 		current_net_placement_file << max(min<int>(x, grid.width() - 2), 1) - bbptr->xmin;
 		current_net_placement_file << ",";
@@ -381,7 +370,7 @@ static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float 
 //		current_net_placement_file << "% wiring cost (corrected HPWL) from VPR:\n";
 //		current_net_placement_file << cost;
 //		current_net_placement_file << "\n";
-		current_net_placement_file << "% pseudo exact wiring cost (min path through grid):\n";
+//		current_net_placement_file << "% pseudo exact wiring cost (min path through grid):\n";
 		current_net_placement_file << compute_min_wiring_cost(net_id, bbptr);
 		current_net_placement_file << "\n";
 
