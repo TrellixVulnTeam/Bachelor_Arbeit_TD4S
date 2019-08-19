@@ -1,0 +1,92 @@
+length 2
+280138
+length 3
+90509
+length 4
+63573
+length 5
+33374
+length 6
+15406
+length 7
+15489
+length 8
+13501
+length 9
+21056
+length 10
+13926
+length 11
+18662
+length 12
+15395
+length 13
+16246
+length 14
+23091
+length 15
+21716
+length 16
+20118
+length 17
+17476
+length 18
+14348
+length 19
+22426
+length 20
+39348
+length 21
+30846
+length 22
+26715
+length 23
+26980
+length 24
+19646
+length 25
+17713
+length 26
+16968
+length 27
+10879
+length 28
+12480
+length 29
+16928
+length 30
+17961
+length 31
+7824
+length 32
+8594
+length 33
+3811
+length 34
+4925
+length 35
+4172
+length 36
+2430
+length 37
+5869
+length 38
+2895
+length 39
+3109
+length 40
+2701
+length 41
+1609
+length 42
+2185
+length 43
+4592
+length 44
+2959
+length 45
+1760
+length 46
+1258
+length 47
+1828
