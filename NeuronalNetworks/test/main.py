@@ -1,6 +1,13 @@
+import os
+os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
 import tensorflow as tf
 import datetime
 mnist = tf.keras.datasets.mnist
+
+if tf.test.gpu_device_name():
+    print("GPU:", tf.test.gpu_device_name())
+else:
+    print("NO GPU")
 
 (x_train, y_train),(x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0

@@ -2,13 +2,16 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 import os
 import sys
 import math
 
 batch_size = 250
-epochs = 64
+epochs = 32
 loss_function = 'mean_squared_error'
+optimizer_choice = 'adam'
 np_random_seed = 8002
 validation_plotting_point_count = 30
 
@@ -22,6 +25,15 @@ lines = input_file.read().splitlines()
 input_data_set_list = []
 state = 0
 current_data_set = []
+
+# TODO change if the network architecture changes
+network_architecture = "LSTM(8)-LSTM(16)-Dense(1)"
+plot_basepath = "plots/2_layered/"
+data_limit_flag = False
+data_limit = 4000
+
+if not os.path.isdir(plot_basepath):
+    os.mkdir(plot_basepath)
 
 for line in lines:
     if line[0] != '%':
@@ -93,11 +105,22 @@ for index in range(len(list_of_equal_length_data_lists)):
 # lists containing batches of size batch_size, containing only equally sized input sequences together with their
 # respective normalization factors and expected outputs
 list_of_batches = []
+# for every distinct length...
 for index in range(len(list_of_equal_length_data_lists)):
+    # if there are samples of this length...
     if not len(list_of_equal_length_data_lists[index]) == 0:
-        # for counter in range(min(int(5000 / batch_size), int(len(list_of_equal_length_data_lists[index]) / batch_size))): # TODO
-        for counter in range(int(len(list_of_equal_length_data_lists[index]) / batch_size)):  # TODO
-            list_of_batches.append(list_of_equal_length_data_lists[index][counter * batch_size: (counter+1) * batch_size])
+        # limit number of samples per distinct sequence length to avoid overwhelming number of small samples if flag is set
+        if data_limit_flag:
+            # for every sequence of length batch size until the maximum number of samples hs been processed do,...
+            for counter in range(min(int(data_limit / batch_size), int(len(list_of_equal_length_data_lists[index]) / batch_size))):
+                # copy over a consecutive batch to a list of batches
+                list_of_batches.append(list_of_equal_length_data_lists[index][counter * batch_size: (counter+1) * batch_size])
+        # number of samples per distinct length not limited
+        else:
+            # for every sequence of length batch size do...
+            for counter in range(int(len(list_of_equal_length_data_lists[index]) / batch_size)):
+                # copy over a consecutive batch to a list of batches
+                list_of_batches.append(list_of_equal_length_data_lists[index][counter * batch_size: (counter+1) * batch_size])
 
 print("size of training data set:", len(list_of_batches), "batches of size", batch_size, ",",
       batch_size * len(list_of_batches), "samples total")
@@ -109,12 +132,12 @@ list_of_equal_length_data_lists = []
 model = tf.keras.models.Sequential()
 
 model.add(tf.keras.layers.LSTM(8, batch_input_shape=(batch_size, None, 2), return_sequences=True,))
-model.add(tf.keras.layers.LSTM(16, return_sequences=True))
-model.add(tf.keras.layers.LSTM(20, return_sequences=False))
-model.add(tf.keras.layers.Dense(8))
+model.add(tf.keras.layers.LSTM(16, return_sequences=False))
+# model.add(tf.keras.layers.LSTM(20, return_sequences=False))
+# model.add(tf.keras.layers.Dense(8))
 model.add(tf.keras.layers.Dense(1))
 
-model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
+model.compile(loss=loss_function, optimizer=optimizer_choice, metrics=['accuracy'])
 model.summary()
 
 # repeat model definition for a second almost identical model (only difference: batch size of input layer, no
@@ -122,9 +145,9 @@ model.summary()
 model_for_validation = tf.keras.models.Sequential()
 
 model_for_validation.add(tf.keras.layers.LSTM(8, batch_input_shape=(1, None, 2), return_sequences=True,))
-model_for_validation.add(tf.keras.layers.LSTM(16, return_sequences=True))
-model_for_validation.add(tf.keras.layers.LSTM(20, return_sequences=False))
-model_for_validation.add(tf.keras.layers.Dense(8))
+model_for_validation.add(tf.keras.layers.LSTM(16, return_sequences=False))
+# model_for_validation.add(tf.keras.layers.LSTM(20, return_sequences=False))
+# model_for_validation.add(tf.keras.layers.Dense(8))
 model_for_validation.add(tf.keras.layers.Dense(1))
 
 # no tensorboard because of training runs of only 1 epoch each
@@ -152,6 +175,7 @@ for data in data_validate:
     while len(individual_loss_histories) < (len(data[1]) - 1):
         individual_loss_histories.append([[], 0])
     individual_loss_histories[len(data[1]) - 2][1] += 1
+final_individual_loss_histories = 0
 
 # model epochs
 for epoch_count in range(epochs):
@@ -166,7 +190,7 @@ for epoch_count in range(epochs):
     # in each epoch train on all the training data, one batch at a time
     for batch_counter in range(len(list_of_batches)):
 
-        print("batch #", batch_counter)
+        print("epoch(" + str(epoch_count) + "/" + str(epochs - 1) + ") batch #", batch_counter)
 
         # shuffle the specific batch (internally)
         np.random.shuffle(list_of_batches[batch_counter])
@@ -182,7 +206,7 @@ for epoch_count in range(epochs):
     # copy weights to the validation model with batch size of 1
     model_for_validation.set_weights(model.get_weights())
     # recompile the model
-    model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
+    model.compile(loss=loss_function, optimizer=optimizer_choice, metrics=['accuracy'])
 
     # validate
     produced_results = []
@@ -213,6 +237,7 @@ for epoch_count in range(epochs):
             sys.exit("failed to compute loss function: not implemented.")
     # log the mean loss for this epoch
     loss_history.append(float(squared_loss_sum / len(data_validate)))
+    # finalize individual mean loss values for this epoch
     for individual_loss_list_index in range(len(individual_loss_histories)):
         if not individual_loss_histories[individual_loss_list_index][1] == 0:
             individual_loss_histories[individual_loss_list_index][0][epoch_count] /= individual_loss_histories[individual_loss_list_index][1]
@@ -226,20 +251,70 @@ for epoch_count in range(epochs):
         plt.scatter(range(validation_plotting_point_count),
                     [data[2] for data in data_validate][:validation_plotting_point_count],
                     c='g')
+        plt.savefig(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "scatterplot_" +
+                    ("initial" if (epoch_count == 0) else ("final" if (epoch_count == epochs - 1) else "midway")) +
+                    ".png", bbox_inches='tight')
         plt.show()
 
-    if epoch_count == epochs - 1:
-        for individual_loss_list_index in range(len(individual_loss_histories)):
-            if not individual_loss_histories[individual_loss_list_index][1] == 0:
-                plt.title("loss plot for validation data of length" + str(individual_loss_list_index + 2))
-                plt.xlabel("epoch")
-                plt.ylabel(loss_function)
-                plt.plot(range(epoch_count + 1), np.asarray(individual_loss_histories[individual_loss_list_index][0]).reshape(len(individual_loss_histories[individual_loss_list_index][0])), 'bx-')
-                plt.show()
-
-    # plot loss over epochs
+    # plot combined validation loss over epochs
     plt.title("loss plot for whole validation data set")
     plt.xlabel("epoch")
     plt.ylabel(loss_function)
     plt.plot(range(epoch_count + 1), loss_history, 'bo-')
+    if epoch_count == epochs - 1:
+        plt.savefig(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss.png", bbox_inches='tight')
     plt.show()
+
+    # plot individual loss histories in one combined plot for easy qualitative comparison at the end
+    # if epoch_count == epochs - 1:
+    if True:
+        # extract only non-empty histories and assign subplot names
+        column_names = []
+        filtered_individual_loss_histories = []
+        for individual_loss_list_index in range(len(individual_loss_histories)):
+            if not individual_loss_histories[individual_loss_list_index][1] == 0:
+                column_names.append(str(individual_loss_list_index + 2))
+                filtered_individual_loss_histories.append(individual_loss_histories[individual_loss_list_index][0])
+
+        # prepare and print the combined plot
+        # prepare data
+        df = pd.DataFrame(np.asarray(filtered_individual_loss_histories).reshape(len(filtered_individual_loss_histories), epoch_count + 1).T, columns=np.asarray(column_names))
+        # create plot
+        fig1, ax1 = plt.subplots(figsize=(20, 15))
+        # assign different colors to different histories
+        colors = sns.cubehelix_palette(len(filtered_individual_loss_histories), rot=0.9)
+        df.plot(color=colors, ax=ax1)
+        # generate the legend
+        plt.semilogy()
+        plt.legend(ncol=4, loc='best')
+        # specify title and axis labels
+        plt.title("individual loss histories for validation sequences with different lengths")
+        plt.xlabel("epoch")
+        plt.ylabel(loss_function)
+        # if it is the final plot save it (also save a plot just for the initial phase)
+        if epoch_count == epochs - 1 or epoch_count == int(epochs / 3):
+            final_individual_loss_histories = df
+            plt.savefig(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss_individual_" + ("final" if (epoch_count == epochs - 1) else "initial") + ".png", bbox_inches='tight')
+        # finally make the plot visible
+        plt.show()
+
+        print(df)
+        print("loss history:")
+        print(loss_history)
+
+with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "hyperparameters.txt", "w") as text_file:
+    print("network architecture (sequential): {}".format(network_architecture), file=text_file)
+    print("batch size: {}".format(batch_size), file=text_file)
+    print("number of epochs: {}".format(epochs), file=text_file)
+    print("loss function: {}".format(loss_function), file=text_file)
+    print("optimizer: {}".format(optimizer_choice), file=text_file)
+    print("numpy random number generator seed: {}".format(np_random_seed), file=text_file)
+    print("data limit factor: {}".format("none" if not data_limit_flag else data_limit), file=text_file)
+with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss_history.txt", "w") as text_file:
+    print("combined validation loss history:", file=text_file)
+    print("", file=text_file)
+    print(loss_history, file=text_file)
+    print("", file=text_file)
+    print("individual validation loss histories:", file=text_file)
+    print("", file=text_file)
+    print(final_individual_loss_histories, file=text_file)
