@@ -7,6 +7,7 @@ import seaborn as sns
 import os
 import sys
 import math
+import gc
 
 cross_count = [1.0, 1.0, 1.0, 1.0828, 1.1536, 1.2206, 1.2823, 1.3385, 1.3991, 1.4493, 1.4974, 1.5455, 1.5937, 1.6418,
                1.6899, 1.7304, 1.7709, 1.8114, 1.8519, 1.8924, 1.9288, 1.9652, 2.0015, 2.0379, 2.0743, 2.1061, 2.1379,
@@ -30,6 +31,7 @@ def get_corrected_bounding_box_cost(bb_cost, number_of_terminals):
 batch_size = 250
 epochs = 32
 loss_function = 'mean_squared_error'
+input_file_names = ["blob_merge.txt"]
 optimizer_choice = 'adam'
 np_random_seed = 8002
 validation_plotting_point_count = 30
@@ -39,8 +41,6 @@ np.random.seed(np_random_seed)
 
 # read training and test data from file and format it...
 print("started")
-input_file = open("out.txt", "r")
-lines = input_file.read().splitlines()
 input_data_set_list = []
 state = 0
 current_data_set = []
@@ -54,30 +54,38 @@ data_limit = 4000
 if not os.path.isdir(plot_basepath):
     os.mkdir(plot_basepath)
 
-for line in lines:
-    if line[0] != '%':
-        if state == 0:
-            bb_size = line.split(',')
-            current_data_set.append(max(int(bb_size[0]), int(bb_size[1])))
-            current_data_set.append(int(bb_size[0]) + int(bb_size[1]))
-            state = 1
-        elif state == 1:
-            list_of_coord_pairs = line.split(';')
-            coord_pair_list = []
-            for coord_pair in list_of_coord_pairs:
-                x_y_coords = coord_pair.split(',')
-                coord_pair_list.append([float(x_y_coords[0]) / current_data_set[0],
-                                        float(x_y_coords[1]) / current_data_set[0]])
-            current_data_set.append(coord_pair_list)
-            current_data_set[1] = get_corrected_bounding_box_cost(current_data_set[1], len(coord_pair_list)) / current_data_set[0]
-            state = 2
-        else:
-            current_data_set.append(float(line) / current_data_set[0])
-            input_data_set_list.append(current_data_set)
-            current_data_set = []
-            state = 0
+for filename in input_file_names:
+    input_file = open(filename, "r")
+    lines = input_file.read().splitlines()
 
-input_file.close()
+    for line_number in range(len(lines)):
+        if line_number % 50000 == 0:
+            gc.collect()
+        line = lines[line_number]
+        if line[0] != '%':
+            if state == 0:
+                bb_size = line.split(',')
+                current_data_set.append(max(int(bb_size[0]), int(bb_size[1])))
+                current_data_set.append(int(bb_size[0]) + int(bb_size[1]))
+                state = 1
+            elif state == 1:
+                list_of_coord_pairs = line.split(';')
+                coord_pair_list = []
+                for coord_pair in list_of_coord_pairs:
+                    x_y_coords = coord_pair.split(',')
+                    coord_pair_list.append([float(x_y_coords[0]) / current_data_set[0],
+                                            float(x_y_coords[1]) / current_data_set[0]])
+                current_data_set.append(coord_pair_list)
+                current_data_set[1] = get_corrected_bounding_box_cost(current_data_set[1], len(coord_pair_list)) / current_data_set[0]
+                state = 2
+            else:
+                current_data_set.append(float(line) / current_data_set[0])
+                input_data_set_list.append(current_data_set)
+                current_data_set = []
+                state = 0
+
+    input_file.close()
+    gc.collect()
 
 # data = np.array(input_coord_lists, dtype= float)
 # target = np.array(output_costs, dtype= float)
@@ -105,6 +113,9 @@ for index in range(len(data_train)):
         list_of_equal_length_data_lists.append([])
     list_of_equal_length_data_lists[len(input_data_set) - 2].append(data_train[index])
 print("data sorted by length.")
+
+# remove datasets of length 2 TODO
+list_of_equal_length_data_lists[0]= []
 
 # "free" list
 data_train = []
@@ -148,6 +159,8 @@ print("size of training data set:", len(list_of_batches), "batches of size", bat
 
 # "free" list
 list_of_equal_length_data_lists = []
+
+gc.collect()
 
 # model definition
 model = tf.keras.models.Sequential()
@@ -200,6 +213,8 @@ final_individual_loss_histories = 0
 
 # model epochs
 for epoch_count in range(epochs):
+
+    gc.collect()
 
     print("epoch #", epoch_count)
 
@@ -274,12 +289,12 @@ for epoch_count in range(epochs):
             else:
                 print("ERROR: loss function not implemented")
                 sys.exit("failed to compute loss function: not implemented.")
-    # finalize mean loss value of original BB cost
-    squared_original_bb_loss_sum /= len(data_validate)
-    # finalize individual mean loss values of original BB cost
-    for individual_loss_list_index in range(len(individual_loss_histories)):
-        if not individual_loss_histories[individual_loss_list_index][1] == 0:
-            individual_loss_histories[individual_loss_list_index][2] /= individual_loss_histories[individual_loss_list_index][1]
+        # finalize mean loss value of original BB cost
+        squared_original_bb_loss_sum /= len(data_validate)
+        # finalize individual mean loss values of original BB cost
+        for individual_loss_list_index in range(len(individual_loss_histories)):
+            if not individual_loss_histories[individual_loss_list_index][1] == 0:
+                individual_loss_histories[individual_loss_list_index][2] /= individual_loss_histories[individual_loss_list_index][1]
 
     # plot expected and produced results (only for first, middle and last iteration because of visual clutter)
     if (epoch_count == 0) | (epoch_count == epochs - 1) | (epoch_count == int(epochs / 2)):
@@ -354,6 +369,8 @@ for epoch_count in range(epochs):
         print(df_individual_loss_histories)
         print("loss history:")
         print(loss_history)
+
+gc.collect()
 
 with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "hyperparameters.txt", "w") as text_file:
     print("network architecture (sequential): {}".format(network_architecture), file=text_file)
