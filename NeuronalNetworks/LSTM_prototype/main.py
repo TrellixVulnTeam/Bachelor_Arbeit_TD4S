@@ -115,7 +115,7 @@ for index in range(len(data_train)):
 print("data sorted by length.")
 
 # remove datasets of length 2 TODO
-list_of_equal_length_data_lists[0]= []
+list_of_equal_length_data_lists[0] = []
 
 # "free" list
 data_train = []

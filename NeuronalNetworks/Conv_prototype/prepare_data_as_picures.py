@@ -22,7 +22,13 @@ cross_count = [1.0, 1.0, 1.0, 1.0828, 1.1536, 1.2206, 1.2823, 1.3385, 1.3991, 1.
 
 
 def get_corrected_bounding_box_cost(bb_cost, number_of_terminals):
-    "this computes the crossing value for the net and applies it to the bounding box cost to correct cost of large nets, code taken from VTR placer"
+    """
+    this computes the crossing value for the net and applies it to the bounding box cost to correct cost of large nets,
+    code taken from VTR placer
+    :param bb_cost:
+    :param number_of_terminals:
+    :return:
+    """
     if number_of_terminals > 50 & number_of_terminals < 85:
         crossing = 2.7933 + 0.02616 * (number_of_terminals - 50)
     else:
