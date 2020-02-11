@@ -115,7 +115,7 @@ for index in range(len(data_train)):
 print("data sorted by length.")
 
 # remove datasets of length 2 TODO
-list_of_equal_length_data_lists[0]= []
+list_of_equal_length_data_lists[0] = []
 
 # "free" list
 data_train = []
@@ -171,7 +171,7 @@ model.add(tf.keras.layers.LSTM(16, return_sequences=False))
 # model.add(tf.keras.layers.Dense(8))
 model.add(tf.keras.layers.Dense(1))
 
-model.compile(loss=loss_function, optimizer=optimizer_choice, metrics=['accuracy'])
+model.compile(loss=loss_function, optimizer=optimizer_choice)
 model.summary()
 
 # repeat model definition for a second almost identical model (only difference: batch size of input layer, no
@@ -242,7 +242,7 @@ for epoch_count in range(epochs):
     # copy weights to the validation model with batch size of 1
     model_for_validation.set_weights(model.get_weights())
     # recompile the model
-    model.compile(loss=loss_function, optimizer=optimizer_choice, metrics=['accuracy'])
+    model.compile(loss=loss_function, optimizer=optimizer_choice)
 
     # validate
     produced_results = []

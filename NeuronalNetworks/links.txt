@@ -3,3 +3,9 @@ very basic RNN / LSTM example: https://www.youtube.com/watch?v=iMIWee_PXl8&list=
 tensorboard doc: https://www.tensorflow.org/tensorboard/r2/get_started
 
 variable length sequences and batch size 1: https://machinelearningmastery.com/use-different-batch-sizes-training-predicting-python-keras/
+
+tfrecords: https://jkjung-avt.github.io/tfrecords-for-keras/
+https://www.tensorflow.org/guide/data
+http://www.machinelearninguru.com/deep_learning/tensorflow/basics/tfrecord/tfrecord.html # reading
+https://medium.com/@moritzkrger/speeding-up-keras-with-tfrecord-datasets-5464f9836c36
+https://medium.com/@cl2227619761/creating-tensorflow-tfrecords-file-using-images-ade8f3076131 # creating/writing
