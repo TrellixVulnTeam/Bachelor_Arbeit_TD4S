@@ -8,7 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="78fa28d4-44f8-4829-b434-845bbb1e6e6b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../NeuronalNetworks/LSTM_prototype/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../NeuronalNetworks/LSTM_prototype/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NeuronalNetworks/combined_project/parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/../NeuronalNetworks/combined_project/parameters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NeuronalNetworks/combined_project/train_model_lstm.py" beforeDir="false" afterPath="$PROJECT_DIR$/../NeuronalNetworks/combined_project/train_model_lstm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../NeuronalNetworks/combined_project/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/../NeuronalNetworks/combined_project/util.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -55,6 +57,7 @@
       <option name="presentableId" value="Default" />
       <updated>1567804019583</updated>
       <workItem from="1567804022638" duration="1533000" />
+      <workItem from="1585236464638" duration="638000" />
     </task>
     <servers />
   </component>
@@ -66,7 +69,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>

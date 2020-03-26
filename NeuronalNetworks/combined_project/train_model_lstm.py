@@ -26,16 +26,10 @@ np.random.seed(np_random_seed)
 # read training and test data from file and format it...
 print("started")
 
-# # TODO change if the network architecture changes
-# network_architecture = "test-LSTM(8)-LSTM(16)-Dense(1)"
-# plot_basepath = "plots/" + network_architecture + "/"
-# data_limit_flag = True
-# data_limit = 4000
-
 if not os.path.isdir(plot_basepath):
     os.mkdir(plot_basepath)
 
-input_data_set_list = read_input_file_no_duplicates(normalize=True)  # TODO
+input_data_set_list = read_input_file_no_duplicates(normalize=True, remove_len_2_and_3=True)  # TODO
 
 gc.collect()
 
@@ -57,9 +51,6 @@ for input_data_set in data_train:
         list_of_equal_length_data_lists.append([])
     list_of_equal_length_data_lists[len(input_data_set.coordinate_pairs) - 2].append(input_data_set)
 print("data sorted by length.")
-
-# remove datasets of length 2 TODO
-list_of_equal_length_data_lists[0] = []
 
 # "free" list
 data_train = []
@@ -112,7 +103,7 @@ model = tf.keras.models.Sequential()
 model.add(tf.keras.layers.LSTM(8, batch_input_shape=(batch_size, None, 2), return_sequences=True,))
 model.add(tf.keras.layers.LSTM(16, return_sequences=False))
 # model.add(tf.keras.layers.LSTM(20, return_sequences=False))
-# model.add(tf.keras.layers.Dense(8))
+model.add(tf.keras.layers.Dense(8))
 model.add(tf.keras.layers.Dense(1))
 
 model.compile(loss=loss_function, optimizer=optimizer_choice)
@@ -125,7 +116,7 @@ model_for_validation = tf.keras.models.Sequential()
 model_for_validation.add(tf.keras.layers.LSTM(8, batch_input_shape=(1, None, 2), return_sequences=True,))
 model_for_validation.add(tf.keras.layers.LSTM(16, return_sequences=False))
 # model_for_validation.add(tf.keras.layers.LSTM(20, return_sequences=False))
-# model_for_validation.add(tf.keras.layers.Dense(8))
+model_for_validation.add(tf.keras.layers.Dense(8))
 model_for_validation.add(tf.keras.layers.Dense(1))
 
 # no tensorboard because of training runs of only 1 epoch each
@@ -145,18 +136,41 @@ run_logdir = get_run_logdir()
 tensorboard_cb = tf.keras.callbacks.TensorBoard(run_logdir)"""
 
 
-loss_history = []
+loss_history_validate = []
 
 # prepare individual loss histories, list contains records of [loss_history, number_of_samples_for_this_feature_length]
-individual_loss_histories = []
+individual_loss_histories_validate = []
 for data in data_validate:
-    while len(individual_loss_histories) < (len(data.coordinate_pairs) - 1):
-        individual_loss_histories.append([[], 0, 0])
-    individual_loss_histories[len(data.coordinate_pairs) - 2][1] += 1
+    while len(individual_loss_histories_validate) < (len(data.coordinate_pairs) - 1):
+        individual_loss_histories_validate.append([[], 0, 0])
+    individual_loss_histories_validate[len(data.coordinate_pairs) - 2][1] += 1
 final_individual_loss_histories = 0
 
+# compute loss of original bounding box cost for comparison
+loss_corrected_hpwl = 0
+for data in data_validate:
+    if loss_function == 'mean_squared_error':
+        squared_error = (data.corrected_hpwl - data.true_cost) * (data.corrected_hpwl - data.true_cost)
+        loss_corrected_hpwl += squared_error
+        individual_loss_histories_validate[len(data.coordinate_pairs) - 2][2] += squared_error
+    else:
+        print("ERROR: loss function not implemented")
+        sys.exit("failed to compute loss function: not implemented.")
+
+# finalize mean loss value of original BB cost
+loss_corrected_hpwl /= len(data_validate)
+
+# finalize individual mean loss values of original BB cost
+for individual_loss_list_index in range(len(individual_loss_histories_validate)):
+    if not individual_loss_histories_validate[individual_loss_list_index][1] == 0:
+        individual_loss_histories_validate[individual_loss_list_index][2] /= \
+        individual_loss_histories_validate[individual_loss_list_index][1]
+
 # history of training loss
-history = []
+loss_history_train = []
+
+# history of "reference training loss"
+loss_history_train_reference = []
 
 # model epochs
 for epoch_count in range(epochs):
@@ -168,7 +182,7 @@ for epoch_count in range(epochs):
     # shuffle the individual batches (externally)
     np.random.shuffle(list_of_batches)
 
-    history.append(0)
+    loss_history_train.append(0)
 
     # in each epoch train on all the training data, one batch at a time
     for batch_counter in range(len(list_of_batches)):
@@ -184,24 +198,43 @@ for epoch_count in range(epochs):
         y_train = np.asarray([data.true_cost for data in list_of_batches[batch_counter]])
 
         # train on one batch
-        history_tmp = model.fit(x_train, y_train, epochs=1)
-        history[epoch_count] += history_tmp.history['loss'][0]  # mean squared error can be summed up and later
+        loss_history_train_tmp = model.fit(x_train, y_train, epochs=1)
+        loss_history_train[epoch_count] += loss_history_train_tmp.history['loss'][0]  # mean squared error can be summed up and later
         # devided by the number of batches, as long as each batch is of equal size
 
-    history[epoch_count] /= len(list_of_batches)  # finalize mean squared error of train run
+    loss_history_train[epoch_count] /= len(list_of_batches)  # finalize mean squared error of train run
 
     # copy weights to the validation model with batch size of 1
     model_for_validation.set_weights(model.get_weights())
     # recompile the model
     model.compile(loss=loss_function, optimizer=optimizer_choice)
 
+    # optionally compute reference train error (= error produced on training set with same Network state used for
+    # calculating validation error
+    squared_loss_sum = 0
+    if compute_and_plot_reference_train_error:
+        for batch in list_of_batches:
+            for data in batch:
+                result = model_for_validation.predict(
+                    np.asarray(data.coordinate_pairs).reshape(1, len(data.coordinate_pairs), 2))
+                # compute validation loss
+                if loss_function == 'mean_squared_error':
+                    squared_error = (result - data.true_cost) * (result - data.true_cost)
+                    squared_loss_sum += squared_error
+                else:
+                    print("ERROR: loss function not implemented")
+                    sys.exit("failed to compute loss function: not implemented.")
+        # log the mean loss for this epoch
+        loss_history_train_reference.append(float(squared_loss_sum / (len(list_of_batches) * batch_size)))
+
     # validate
     produced_results = []
+    # reset to 0 (might have been used above)
     squared_loss_sum = 0
     # prepare individual loss records
-    for individual_loss_list_index in range(len(individual_loss_histories)):
-        if not individual_loss_histories[individual_loss_list_index][1] == 0:
-            individual_loss_histories[individual_loss_list_index][0].append(0)
+    for individual_loss_list_index in range(len(individual_loss_histories_validate)):
+        if not individual_loss_histories_validate[individual_loss_list_index][1] == 0:
+            individual_loss_histories_validate[individual_loss_list_index][0].append(0)
     # use the whole validation set
     for data in data_validate:
         result = model_for_validation.predict(np.asarray(data.coordinate_pairs).reshape(1, len(data.coordinate_pairs), 2))
@@ -211,54 +244,49 @@ for epoch_count in range(epochs):
         # compute validation loss
         if loss_function == 'mean_squared_error':
             squared_error = (result - data.true_cost) * (result - data.true_cost)
-            if squared_error > 5:
+            if print_high_error_samples and squared_error > 5:
                 print("large error detected:", squared_error)
                 print("expected value:", data.true_cost)
                 print("computed value:", result)
                 print("sequence length:", len(data.coordinate_pairs))
                 print("sequence:", data.coordinate_pairs)
             squared_loss_sum += squared_error
-            individual_loss_histories[len(data.coordinate_pairs) - 2][0][epoch_count] += squared_error
+            individual_loss_histories_validate[len(data.coordinate_pairs) - 2][0][epoch_count] += squared_error
         else:
             print("ERROR: loss function not implemented")
             sys.exit("failed to compute loss function: not implemented.")
     # log the mean loss for this epoch
-    loss_history.append(float(squared_loss_sum / len(data_validate)))
+    loss_history_validate.append(float(squared_loss_sum / len(data_validate)))
     # finalize individual mean loss values for this epoch
-    for individual_loss_list_index in range(len(individual_loss_histories)):
-        if not individual_loss_histories[individual_loss_list_index][1] == 0:
-            individual_loss_histories[individual_loss_list_index][0][epoch_count] /= individual_loss_histories[individual_loss_list_index][1]
-
-    # compute loss of original bounding box cost for comparison
-    squared_original_bb_loss_sum = 0
-    if(epoch_count == 0):
-        for data in data_validate:
-            if loss_function == 'mean_squared_error':
-                squared_error = (data.corrected_hpwl - data.true_cost) * (data.corrected_hpwl - data.true_cost)
-                squared_original_bb_loss_sum += squared_error
-                individual_loss_histories[len(data.coordinate_pairs) - 2][2] += squared_error
-            else:
-                print("ERROR: loss function not implemented")
-                sys.exit("failed to compute loss function: not implemented.")
-        # finalize mean loss value of original BB cost
-        squared_original_bb_loss_sum /= len(data_validate)
-        # finalize individual mean loss values of original BB cost
-        for individual_loss_list_index in range(len(individual_loss_histories)):
-            if not individual_loss_histories[individual_loss_list_index][1] == 0:
-                individual_loss_histories[individual_loss_list_index][2] /= individual_loss_histories[individual_loss_list_index][1]
+    for individual_loss_list_index in range(len(individual_loss_histories_validate)):
+        if not individual_loss_histories_validate[individual_loss_list_index][1] == 0:
+            individual_loss_histories_validate[individual_loss_list_index][0][epoch_count] /= individual_loss_histories_validate[individual_loss_list_index][1]
 
     # plot expected and produced results (only for first, middle and last iteration because of visual clutter)
     if (epoch_count == 0) | (epoch_count == epochs - 1) | (epoch_count == int(epochs / 2)):
         plt.title("predictions against true values, epoch " + str(epoch_count))
-        plt.scatter(range(validation_plotting_point_count),
-                    produced_results[:validation_plotting_point_count],
-                    c='r')
-        plt.scatter(range(validation_plotting_point_count),
-                    [data.true_cost for data in data_validate][:validation_plotting_point_count],
-                    c='g')
-        plt.scatter(range(validation_plotting_point_count),
-                    [data.corrected_hpwl for data in data_validate][:validation_plotting_point_count],
-                    c='b')
+        plt.scatter(range(validation_plotting_point_count)
+                    if validation_plotting_point_count < len(produced_results)
+                    else range(len(produced_results)),
+                    produced_results[:validation_plotting_point_count]
+                    if validation_plotting_point_count < len(produced_results)
+                    else produced_results,
+                    c='r', label='predicted_cost')
+        plt.scatter(range(validation_plotting_point_count)
+                    if validation_plotting_point_count < len(data_validate)
+                    else range(len(data_validate)),
+                    [data.true_cost for data in data_validate][:validation_plotting_point_count]
+                    if validation_plotting_point_count < len(data_validate)
+                    else [data.true_cost for data in data_validate],
+                    c='g', label='true_cost')
+        plt.scatter(range(validation_plotting_point_count)
+                    if validation_plotting_point_count < len(data_validate)
+                    else range(len(data_validate)),
+                    [data.corrected_hpwl for data in data_validate][:validation_plotting_point_count]
+                    if validation_plotting_point_count < len(data_validate)
+                    else [data.corrected_hpwl for data in data_validate],
+                    c='b', label='corrected_hpwl')
+        plt.legend(loc='best')
         plt.savefig(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "scatterplot_" +
                     ("initial" if (epoch_count == 0) else ("final" if (epoch_count == epochs - 1) else "midway")) +
                     ".png", bbox_inches='tight')
@@ -268,27 +296,31 @@ for epoch_count in range(epochs):
     plt.title("loss plot for whole validation data set")
     plt.xlabel("epoch")
     plt.ylabel(loss_function)
-    plt.plot(range(epoch_count + 1), loss_history, 'bo-')
-    plt.plot(range(epoch_count + 1), history, 'gx-')
-    plt.axhline(y=squared_original_bb_loss_sum, color='y', linestyle='-')
+    plt.yscale('log')
+    plt.plot(range(epoch_count + 1), loss_history_validate, 'bo-', label='validation loss')
+    plt.plot(range(epoch_count + 1), loss_history_train, 'gx-', label='training loss')
+    if compute_and_plot_reference_train_error:
+        plt.plot(range(epoch_count + 1), loss_history_train_reference, 'r*-', label='reference training loss')
+    plt.axhline(y=loss_corrected_hpwl, color='y', linestyle='-', label='corrected_hpwl loss')
+    plt.legend(loc='best')
     if epoch_count == epochs - 1:
         plt.savefig(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss.png", bbox_inches='tight')
     plt.show()
 
     # plot individual loss histories in one combined plot for easy qualitative comparison at the end
     # if epoch_count == epochs - 1:
-    if True:
+    if print_and_plot_stats_every_epoch or (epoch_count == epochs - 1):
         # extract only non-empty histories and assign subplot names
         column_names = []
         filtered_individual_loss_histories = []
         filtered_individual_original_loss_histories = []
-        for individual_loss_list_index in range(len(individual_loss_histories)):
-            if not individual_loss_histories[individual_loss_list_index][1] == 0:
+        for individual_loss_list_index in range(len(individual_loss_histories_validate)):
+            if not individual_loss_histories_validate[individual_loss_list_index][1] == 0:
                 column_names.append(str(individual_loss_list_index + 2))
-                filtered_individual_loss_histories.append(individual_loss_histories[individual_loss_list_index][0])
+                filtered_individual_loss_histories.append(individual_loss_histories_validate[individual_loss_list_index][0])
                 individual_original_loss_tmp = []
-                for count in range(len(individual_loss_histories[individual_loss_list_index][0])):
-                    individual_original_loss_tmp.append(individual_loss_histories[individual_loss_list_index][2])
+                for count in range(len(individual_loss_histories_validate[individual_loss_list_index][0])):
+                    individual_original_loss_tmp.append(individual_loss_histories_validate[individual_loss_list_index][2])
                 filtered_individual_original_loss_histories.append(individual_original_loss_tmp)
 
         # prepare and print the combined plot
@@ -296,7 +328,7 @@ for epoch_count in range(epochs):
         df_individual_loss_histories = pd.DataFrame(np.asarray(filtered_individual_loss_histories).reshape(len(filtered_individual_loss_histories), epoch_count + 1).T, columns=np.asarray(column_names))
         df_individual_original_loss_histories = pd.DataFrame(np.asarray(filtered_individual_original_loss_histories).reshape(len(filtered_individual_original_loss_histories), epoch_count + 1).T, columns=np.asarray(column_names))
 
-        print("original BB loss:")
+        print("corrected_hpwl loss history:")
         print(df_individual_original_loss_histories)
         # create plot
         fig1, ax1 = plt.subplots(figsize=(20, 15))
@@ -318,9 +350,10 @@ for epoch_count in range(epochs):
         # finally make the plot visible
         plt.show()
 
+        print("validation loss history:")
         print(df_individual_loss_histories)
         print("loss history:")
-        print(loss_history)
+        print(loss_history_validate)
 
 gc.collect()
 
@@ -335,7 +368,7 @@ with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_")
 with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss_history.txt", "w") as text_file:
     print("combined validation loss history:", file=text_file)
     print("", file=text_file)
-    print(loss_history, file=text_file)
+    print(loss_history_validate, file=text_file)
     print("", file=text_file)
     print("individual validation loss histories:", file=text_file)
     print("", file=text_file)

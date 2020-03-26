@@ -49,7 +49,7 @@ def get_corrected_bounding_box_cost(bb_cost, number_of_terminals):
     return bb_cost * crossing
 
 
-def read_input_file(normalize):
+def read_input_file(normalize, remove_len_2_and_3=True):
     """
     TODO
     :return:
@@ -96,7 +96,7 @@ def read_input_file(normalize):
                                     )  # second element: normalized corrected HPWL
                 else:
                     current_data_set[1] = get_corrected_bounding_box_cost(current_data_set[1], len(coord_pair_list))
-                    # second element: normalized corrected HPWL
+                    # second element: corrected HPWL
                 state = 2  # iterate state counter
             else:
                 if normalize:
@@ -105,14 +105,15 @@ def read_input_file(normalize):
                 else:
                     current_data_set.append(int(line))  # fourth element: "real" cost computed by vpr router
                 # if current_data_set[0] < 20:
-                input_data_set_list.append(
-                    SingleDataSet(
-                        current_data_set[0],
-                        current_data_set[1],
-                        current_data_set[2],
-                        current_data_set[3]
-                    )
-                )  # add finished dataset to list
+                if (not remove_len_2_and_3) or (len(current_data_set[2]) >= 4):
+                    input_data_set_list.append(
+                        SingleDataSet(
+                            current_data_set[0],
+                            current_data_set[1],
+                            current_data_set[2],
+                            current_data_set[3]
+                        )
+                    )  # add finished dataset to list
                 current_data_set = []  # reset
                 state = 0  # reset
 
@@ -121,6 +122,6 @@ def read_input_file(normalize):
     return input_data_set_list
 
 
-def read_input_file_no_duplicates(normalize):
-    input_data_set_list = read_input_file(normalize)
+def read_input_file_no_duplicates(normalize, remove_len_2_and_3=True):
+    input_data_set_list = read_input_file(normalize, remove_len_2_and_3)
     return set(input_data_set_list)
