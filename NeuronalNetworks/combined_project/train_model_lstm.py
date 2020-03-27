@@ -1,4 +1,11 @@
+from util import *
+from parameters import *
+
 import numpy as np
+
+# repeatable test runs, seed before importing tensorflow
+np.random.seed(np_random_seed)
+
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -9,9 +16,6 @@ import sys
 import math
 import gc
 
-from util import *
-from parameters import *
-
 # batch_size = 250
 # epochs = 32
 # loss_function = 'mean_squared_error'
@@ -19,9 +23,6 @@ from parameters import *
 # optimizer_choice = 'adam'
 # np_random_seed = 8002
 # validation_plotting_point_count = 30
-
-# repeatable test runs
-np.random.seed(np_random_seed)
 
 # read training and test data from file and format it...
 print("started")
@@ -36,7 +37,9 @@ gc.collect()
 print("file read,", len(input_data_set_list), "datasets loaded.")
 
 # shuffle true by default, default random number generator is np.random, seeded above
-data_train, data_test = train_test_split(list(input_data_set_list), test_size=(10*int(math.sqrt(len(input_data_set_list)))))
+data_train, data_test = train_test_split(
+    list(input_data_set_list), test_size=(10*int(math.sqrt(len(input_data_set_list))))
+)
 data_train, data_validate = train_test_split(data_train, test_size=(10*int(math.sqrt(len(data_train)))))
 
 print("size of validation set:", len(data_validate))
@@ -76,18 +79,25 @@ list_of_batches = []
 for index in range(len(list_of_equal_length_data_lists)):
     # if there are samples of this length...
     if not len(list_of_equal_length_data_lists[index]) == 0:
-        # limit number of samples per distinct sequence length to avoid overwhelming number of small samples if flag is set
+        # limit number of samples per distinct sequence length to avoid overwhelming number of small samples if flag
+        # is set
         if data_limit_flag:
             # for every sequence of length batch size until the maximum number of samples hs been processed do,...
-            for counter in range(min(int(data_limit / batch_size), int(len(list_of_equal_length_data_lists[index]) / batch_size))):
+            for counter in range(
+                    min(int(data_limit / batch_size), int(len(list_of_equal_length_data_lists[index]) / batch_size))
+            ):
                 # copy over a consecutive batch to a list of batches
-                list_of_batches.append(list_of_equal_length_data_lists[index][counter * batch_size: (counter+1) * batch_size])
+                list_of_batches.append(
+                    list_of_equal_length_data_lists[index][counter * batch_size: (counter+1) * batch_size]
+                )
         # number of samples per distinct length not limited
         else:
             # for every sequence of length batch size do...
             for counter in range(int(len(list_of_equal_length_data_lists[index]) / batch_size)):
                 # copy over a consecutive batch to a list of batches
-                list_of_batches.append(list_of_equal_length_data_lists[index][counter * batch_size: (counter+1) * batch_size])
+                list_of_batches.append(
+                    list_of_equal_length_data_lists[index][counter * batch_size: (counter+1) * batch_size]
+                )
 
 print("size of training data set:", len(list_of_batches), "batches of size", batch_size, ",",
       batch_size * len(list_of_batches), "samples total")
@@ -100,10 +110,10 @@ gc.collect()
 # model definition
 model = tf.keras.models.Sequential()
 
-model.add(tf.keras.layers.LSTM(8, batch_input_shape=(batch_size, None, 2), return_sequences=True,))
-model.add(tf.keras.layers.LSTM(16, return_sequences=False))
+model.add(tf.keras.layers.LSTM(4, batch_input_shape=(batch_size, None, 2), return_sequences=True,))
+model.add(tf.keras.layers.LSTM(8, return_sequences=False))
 # model.add(tf.keras.layers.LSTM(20, return_sequences=False))
-model.add(tf.keras.layers.Dense(8))
+model.add(tf.keras.layers.Dense(4))
 model.add(tf.keras.layers.Dense(1))
 
 model.compile(loss=loss_function, optimizer=optimizer_choice)
@@ -113,11 +123,13 @@ model.summary()
 # functional differences, it will produce the same results if the weights are the same)
 model_for_validation = tf.keras.models.Sequential()
 
-model_for_validation.add(tf.keras.layers.LSTM(8, batch_input_shape=(1, None, 2), return_sequences=True,))
-model_for_validation.add(tf.keras.layers.LSTM(16, return_sequences=False))
+model_for_validation.add(tf.keras.layers.LSTM(4, batch_input_shape=(1, None, 2), return_sequences=True,))
+model_for_validation.add(tf.keras.layers.LSTM(8, return_sequences=False))
 # model_for_validation.add(tf.keras.layers.LSTM(20, return_sequences=False))
-model_for_validation.add(tf.keras.layers.Dense(8))
+model_for_validation.add(tf.keras.layers.Dense(4))
 model_for_validation.add(tf.keras.layers.Dense(1))
+# compile the model (not necessary for predicting without training, but not harmful either)
+model_for_validation.compile(loss=loss_function, optimizer=optimizer_choice)
 
 # no tensorboard because of training runs of only 1 epoch each
 """#Log all variables for Tensorboard
@@ -164,7 +176,7 @@ loss_corrected_hpwl /= len(data_validate)
 for individual_loss_list_index in range(len(individual_loss_histories_validate)):
     if not individual_loss_histories_validate[individual_loss_list_index][1] == 0:
         individual_loss_histories_validate[individual_loss_list_index][2] /= \
-        individual_loss_histories_validate[individual_loss_list_index][1]
+         individual_loss_histories_validate[individual_loss_list_index][1]
 
 # history of training loss
 loss_history_train = []
@@ -199,20 +211,18 @@ for epoch_count in range(epochs):
 
         # train on one batch
         loss_history_train_tmp = model.fit(x_train, y_train, epochs=1)
-        loss_history_train[epoch_count] += loss_history_train_tmp.history['loss'][0]  # mean squared error can be summed up and later
-        # devided by the number of batches, as long as each batch is of equal size
+        loss_history_train[epoch_count] += loss_history_train_tmp.history['loss'][0]  # mean squared error can be
+        # summed up and later devided by the number of batches, as long as each batch is of equal size
 
     loss_history_train[epoch_count] /= len(list_of_batches)  # finalize mean squared error of train run
 
     # copy weights to the validation model with batch size of 1
     model_for_validation.set_weights(model.get_weights())
-    # recompile the model
-    model.compile(loss=loss_function, optimizer=optimizer_choice)
 
     # optionally compute reference train error (= error produced on training set with same Network state used for
     # calculating validation error
     squared_loss_sum = 0
-    if compute_and_plot_reference_train_error:
+    if compute_and_plot_reference_train_error or (epoch_count == epochs - 1):
         for batch in list_of_batches:
             for data in batch:
                 result = model_for_validation.predict(
@@ -260,7 +270,8 @@ for epoch_count in range(epochs):
     # finalize individual mean loss values for this epoch
     for individual_loss_list_index in range(len(individual_loss_histories_validate)):
         if not individual_loss_histories_validate[individual_loss_list_index][1] == 0:
-            individual_loss_histories_validate[individual_loss_list_index][0][epoch_count] /= individual_loss_histories_validate[individual_loss_list_index][1]
+            individual_loss_histories_validate[individual_loss_list_index][0][epoch_count] /= \
+                individual_loss_histories_validate[individual_loss_list_index][1]
 
     # plot expected and produced results (only for first, middle and last iteration because of visual clutter)
     if (epoch_count == 0) | (epoch_count == epochs - 1) | (epoch_count == int(epochs / 2)):
@@ -299,12 +310,21 @@ for epoch_count in range(epochs):
     plt.yscale('log')
     plt.plot(range(epoch_count + 1), loss_history_validate, 'bo-', label='validation loss')
     plt.plot(range(epoch_count + 1), loss_history_train, 'gx-', label='training loss')
-    if compute_and_plot_reference_train_error:
+    if compute_and_plot_reference_train_error or (epoch_count == epochs - 1):
+        if not compute_and_plot_reference_train_error:
+            reference_loss_last_iter = loss_history_train_reference[0]
+            loss_history_train_reference = []
+            for epoch_count_tmp in range(epochs-1):
+                loss_history_train_reference.append(0)
+            loss_history_train_reference.append(reference_loss_last_iter)
         plt.plot(range(epoch_count + 1), loss_history_train_reference, 'r*-', label='reference training loss')
     plt.axhline(y=loss_corrected_hpwl, color='y', linestyle='-', label='corrected_hpwl loss')
     plt.legend(loc='best')
     if epoch_count == epochs - 1:
-        plt.savefig(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss.png", bbox_inches='tight')
+        plt.savefig(
+            plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss.png",
+            bbox_inches='tight'
+        )
     plt.show()
 
     # plot individual loss histories in one combined plot for easy qualitative comparison at the end
@@ -317,16 +337,32 @@ for epoch_count in range(epochs):
         for individual_loss_list_index in range(len(individual_loss_histories_validate)):
             if not individual_loss_histories_validate[individual_loss_list_index][1] == 0:
                 column_names.append(str(individual_loss_list_index + 2))
-                filtered_individual_loss_histories.append(individual_loss_histories_validate[individual_loss_list_index][0])
+                filtered_individual_loss_histories.append(
+                    individual_loss_histories_validate[individual_loss_list_index][0]
+                )
                 individual_original_loss_tmp = []
                 for count in range(len(individual_loss_histories_validate[individual_loss_list_index][0])):
-                    individual_original_loss_tmp.append(individual_loss_histories_validate[individual_loss_list_index][2])
+                    individual_original_loss_tmp.append(
+                        individual_loss_histories_validate[individual_loss_list_index][2]
+                    )
                 filtered_individual_original_loss_histories.append(individual_original_loss_tmp)
 
         # prepare and print the combined plot
         # prepare data
-        df_individual_loss_histories = pd.DataFrame(np.asarray(filtered_individual_loss_histories).reshape(len(filtered_individual_loss_histories), epoch_count + 1).T, columns=np.asarray(column_names))
-        df_individual_original_loss_histories = pd.DataFrame(np.asarray(filtered_individual_original_loss_histories).reshape(len(filtered_individual_original_loss_histories), epoch_count + 1).T, columns=np.asarray(column_names))
+        df_individual_loss_histories = pd.DataFrame(
+            np.asarray(filtered_individual_loss_histories).reshape(
+                len(filtered_individual_loss_histories),
+                epoch_count + 1
+            ).T,
+            columns=np.asarray(column_names)
+        )
+        df_individual_original_loss_histories = pd.DataFrame(
+            np.asarray(filtered_individual_original_loss_histories).reshape(
+                len(filtered_individual_original_loss_histories),
+                epoch_count + 1
+            ).T,
+            columns=np.asarray(column_names)
+        )
 
         print("corrected_hpwl loss history:")
         print(df_individual_original_loss_histories)
@@ -346,7 +382,14 @@ for epoch_count in range(epochs):
         # if it is the final plot save it (also save a plot just for the initial phase)
         if epoch_count == epochs - 1 or epoch_count == int(epochs / 3):
             final_individual_loss_histories = df_individual_loss_histories
-            plt.savefig(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss_individual_" + ("final" if (epoch_count == epochs - 1) else "initial") + ".png", bbox_inches='tight')
+            plt.savefig(
+                plot_basepath + (
+                    "limited_data_" if data_limit_flag else "full_data_"
+                ) + "loss_individual_" + (
+                    "final" if (epoch_count == epochs - 1) else "initial"
+                ) + ".png",
+                bbox_inches='tight'
+            )
         # finally make the plot visible
         plt.show()
 
@@ -357,7 +400,11 @@ for epoch_count in range(epochs):
 
 gc.collect()
 
-with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "hyperparameters.txt", "w") as text_file:
+model_for_validation.save(plot_basepath + "model/", include_optimizer=False)
+
+with open(
+        plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "hyperparameters.txt", "w"
+) as text_file:
     print("network architecture (sequential): {}".format(network_architecture), file=text_file)
     print("batch size: {}".format(batch_size), file=text_file)
     print("number of epochs: {}".format(epochs), file=text_file)
@@ -365,7 +412,9 @@ with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_")
     print("optimizer: {}".format(optimizer_choice), file=text_file)
     print("numpy random number generator seed: {}".format(np_random_seed), file=text_file)
     print("data limit factor: {}".format("none" if not data_limit_flag else data_limit), file=text_file)
-with open(plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss_history.txt", "w") as text_file:
+with open(
+        plot_basepath + ("limited_data_" if data_limit_flag else "full_data_") + "loss_history.txt", "w"
+) as text_file:
     print("combined validation loss history:", file=text_file)
     print("", file=text_file)
     print(loss_history_validate, file=text_file)

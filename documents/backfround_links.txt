@@ -6,3 +6,12 @@ NNs with varying input size:
 	>recursive NNs: preprocessing: reduce input to vector of fixed (or small) size without losing relevant information ("tree-structure"), then feed to NN
 	>apply convolutions a variable number of times until fixed size is reached
 	>multiple input NNs for input vectors of differing sizes, then combine intermediary representations of fixed size (outputs of input NNs), then process through output NN (only for inputs without specific ordering)
+
+Tensorflow:
+
+compiling of model only needed for training, does not change state of weights, but of optimizer: 
+	https://stackoverflow.com/questions/47995324/does-model-compile-initialize-all-the-weights-and-biases-in-keras-tensorflow/47996024
+
+seed numpy random module before importing TF:
+	https://github.com/keras-team/keras/issues/2743
+
