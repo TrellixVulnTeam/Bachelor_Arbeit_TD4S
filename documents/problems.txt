@@ -1,0 +1,13 @@
+not able to compile under windows:
+- VS fails due to unsupported CMake syntax (after installing missing packages
+- cygwin gcc/g++ fails due to bug in compiler: 
+-> compiling under linux works
+
+bb coordinates notjust block coordinates leading to segfault because invalid array access:
+/* Code below counts IO blocks as being within the 1..grid.width()-2, 1..grid.height()-2 clb array. *
+		 * This is because channels do not go out of the 0..grid.width()-2, 0..grid.height()-2 range, and   *
+		 * I always take all channels impinging on the bounding box to be within   *
+		 * that bounding box.  Hence, this "movement" of IO blocks does not affect *
+		 * the which channels are included within the bounding box, and it         *
+		 * simplifies the code a lot.                                              */
+
