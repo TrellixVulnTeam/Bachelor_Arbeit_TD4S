@@ -1,3 +1,13 @@
+/*
+ * compile-time switch to choose the mode of operation:
+ * 0: is legacy = unchanged code
+ * 1: is training data generation: logging of all tested net placements with wiring cost into text file
+ * 2: is reference = semantically unchanged code with performance logging of wiring cost compuation
+ * 3: is ml_integration LSTM = wiring cost estimation via LSTM NN, includes features of reference
+ * 4: is ml_integration CNN = wiring cost estimation via CNN NN, includes features of reference
+ */
+#define MODE 0
+
 #include <cstdio>
 #include <cmath>
 #include <memory>
@@ -36,7 +46,9 @@ using namespace std;
 #include "tatum/echo_writer.hpp"
 #include "tatum/TimingReporter.hpp"
 
-#include "training_data_net_writer.h" //training_data_generation
+#if MODE == 1
+    #include "training_data_net_writer.h" //training_data_generation
+#endif
 
 /************** Types and defines local to place.c ***************************/
 
@@ -281,7 +293,7 @@ static void comp_td_point_to_point_delays(const PlaceDelayModel& delay_model);
 
 static void update_td_cost();
 
-static bool driven_by_moved_block(const ClusterNetId net);
+static bool driven_by_moved_block(const ClusterNetId net); // NOLINT(readability-avoid-const-params-in-decls)
 
 static void comp_td_costs(const PlaceDelayModel& delay_model, float *timing_cost, float *connection_delay_sum);
 
@@ -301,12 +313,12 @@ static void update_bb(ClusterNetId net_id, t_bb *bb_coord_new,
 
 static int find_affected_nets_and_update_costs(e_place_algorithm place_algorithm, const PlaceDelayModel& delay_model, float& bb_delta_c, float& timing_delta_c, float& delay_delta_c);
 
-static void record_affected_net(const ClusterNetId net, int& num_affected_nets);
+static void record_affected_net(const ClusterNetId net, int& num_affected_nets); // NOLINT(readability-avoid-const-params-in-decls)
 
-static void update_net_bb(const ClusterNetId net, int iblk, const ClusterBlockId blk, const ClusterPinId blk_pin);
-static void update_td_delta_costs(const PlaceDelayModel& delay_model, const ClusterNetId net, const ClusterPinId pin, float& delta_timing_cost, float& delta_delay_cost);
+static void update_net_bb(const ClusterNetId net, int iblk, const ClusterBlockId blk, const ClusterPinId blk_pin); // NOLINT(readability-avoid-const-params-in-decls)
+static void update_td_delta_costs(const PlaceDelayModel& delay_model, const ClusterNetId net, const ClusterPinId pin, float& delta_timing_cost, float& delta_delay_cost); // NOLINT(readability-avoid-const-params-in-decls)
 
-static float get_net_cost(ClusterNetId net_id, t_bb *bb_ptr);
+static float get_net_cost(ClusterNetId net_id, t_bb *bb_ptr); // NOLINT(readability-inconsistent-declaration-parameter-name)
 
 static void get_bb_from_scratch(ClusterNetId net_id, t_bb *coords,
 		t_bb *num_on_edges);
@@ -338,7 +350,7 @@ static void placement_inner_loop(float t, float rlim, t_placer_opts placer_opts,
 
 static void recompute_costs_from_scratch(const t_placer_opts& placer_opts, const PlaceDelayModel& delay_model, t_placer_costs* costs);
 
-static void calc_placer_stats(t_placer_statistics& stats, float& success_rat, double& std_dev, const t_placer_costs& costs, const int move_lim);
+static void calc_placer_stats(t_placer_statistics& stats, float& success_rat, double& std_dev, const t_placer_costs& costs, const int move_lim); // NOLINT(readability-avoid-const-params-in-decls)
 
 static void generate_post_place_timing_reports(const t_placer_opts& placer_opts,
                                                const t_analysis_opts& analysis_opts,
@@ -346,7 +358,7 @@ static void generate_post_place_timing_reports(const t_placer_opts& placer_opts,
                                                const PlacementDelayCalculator& delay_calc);
 
 /*****************************************************************************/
-void try_place(t_placer_opts placer_opts,
+void try_place(t_placer_opts placer_opts, // NOLINT(performance-unnecessary-value-param)
 		t_annealing_sched annealing_sched,
         t_router_opts router_opts,
         const t_analysis_opts& analysis_opts,
@@ -365,8 +377,8 @@ void try_place(t_placer_opts placer_opts,
 		  oldt, crit_exponent,
 		  first_rlim, final_rlim, inverse_delta_rlim;
 
-    t_placer_costs costs;
-    t_placer_prev_inverse_costs prev_inverse_costs;
+    t_placer_costs costs; // NOLINT(cppcoreguidelines-pro-type-member-init)
+    t_placer_prev_inverse_costs prev_inverse_costs; // NOLINT(cppcoreguidelines-pro-type-member-init)
 
     tatum::TimingPathInfo critical_path;
     float sTNS = NAN;
@@ -374,12 +386,14 @@ void try_place(t_placer_opts placer_opts,
 
 	double std_dev;
 	char msg[vtr::bufsize];
-	t_placer_statistics stats;
+	t_placer_statistics stats; // NOLINT(cppcoreguidelines-pro-type-member-init)
 
     auto& device_ctx = g_vpr_ctx.device();
     auto& cluster_ctx = g_vpr_ctx.clustering();
 
-	init_net_printing_structures(); //training_data_generation
+    #if MODE == 1
+        init_net_printing_structures(); //training_data_generation
+    #endif
 
     std::shared_ptr<SetupTimingInfo> timing_info;
     std::shared_ptr<PlacementDelayCalculator> placement_delay_calc;
@@ -398,7 +412,7 @@ void try_place(t_placer_opts placer_opts,
 	if (placer_opts.place_algorithm == PATH_TIMING_DRIVEN_PLACE
 			|| placer_opts.enable_timing_computations) {
 		/*do this before the initial placement to avoid messing up the initial placement */
-		place_delay_model = alloc_lookups_and_criticalities(chan_width_dist, placer_opts, router_opts, det_routing_arch, segment_inf, directs, num_directs);
+		place_delay_model = alloc_lookups_and_criticalities(chan_width_dist, placer_opts, router_opts, det_routing_arch, segment_inf, directs, num_directs); // NOLINT(performance-unnecessary-value-param)
 
         if (isEchoFileEnabled(E_ECHO_PLACEMENT_DELTA_DELAY_MODEL)) {
             place_delay_model->dump_echo(getEchoFileName(E_ECHO_PLACEMENT_DELTA_DELAY_MODEL));
@@ -552,7 +566,7 @@ void try_place(t_placer_opts placer_opts,
 
 	if (placer_opts.inner_loop_recompute_divider != 0) {
 		inner_recompute_limit = (int)
-			(0.5 + (float) move_lim	/ (float) placer_opts.inner_loop_recompute_divider);
+			(0.5 + (float) move_lim	/ (float) placer_opts.inner_loop_recompute_divider); // NOLINT(bugprone-incorrect-roundings)
     } else {
 		/*don't do an inner recompute */
 		inner_recompute_limit = move_lim + 1;
@@ -780,7 +794,7 @@ void try_place(t_placer_opts placer_opts,
 }
 
 /* Function to recompute the criticalities before the inner loop of the annealing */
-static void outer_loop_recompute_criticalities(t_placer_opts placer_opts,
+static void outer_loop_recompute_criticalities(t_placer_opts placer_opts, // NOLINT(performance-unnecessary-value-param)
     t_placer_costs* costs,
     t_placer_prev_inverse_costs* prev_inverse_costs,
 	int num_connections, float crit_exponent, 
@@ -803,7 +817,7 @@ static void outer_loop_recompute_criticalities(t_placer_opts placer_opts,
         num_connections = std::max(num_connections, 1); //Avoid division by zero
         VTR_ASSERT(num_connections > 0);
 
-		*place_delay_value = costs->delay_cost / num_connections;
+		*place_delay_value = costs->delay_cost / num_connections; // NOLINT(bugprone-narrowing-conversions)
 
         //Per-temperature timing update
         timing_info.update();
@@ -991,7 +1005,7 @@ static void update_rlim(float *rlim, float success_rat, const DeviceGrid& grid) 
 
 	float upper_lim;
 
-	*rlim = (*rlim) * (1. - 0.44 + success_rat);
+	*rlim = (*rlim) * (1. - 0.44 + success_rat); // NOLINT(bugprone-narrowing-conversions)
 	upper_lim = max(grid.width() - 1, grid.height() - 1);
 	*rlim = min(*rlim, upper_lim);
 	*rlim = max(*rlim, (float)1.);
@@ -1007,13 +1021,13 @@ static void update_t(float *t, float rlim, float success_rat,
 		*t = annealing_sched.alpha_t * (*t);
 	} else { /* AUTO_SCHED */
 		if (success_rat > 0.96) {
-			*t = (*t) * 0.5;
+			*t = (*t) * 0.5; // NOLINT(bugprone-narrowing-conversions)
 		} else if (success_rat > 0.8) {
-			*t = (*t) * 0.9;
+			*t = (*t) * 0.9; // NOLINT(bugprone-narrowing-conversions)
 		} else if (success_rat > 0.15 || rlim > 1.) {
-			*t = (*t) * 0.95;
+			*t = (*t) * 0.95; // NOLINT(bugprone-narrowing-conversions)
 		} else {
-			*t = (*t) * 0.8;
+			*t = (*t) * 0.8; // NOLINT(bugprone-narrowing-conversions)
 		}
 	}
 }
@@ -1034,7 +1048,7 @@ static int exit_crit(float t, float cost,
     auto& cluster_ctx = g_vpr_ctx.clustering();
 
 	/* Automatic annealing schedule */
-    float t_exit = 0.005 * cost / cluster_ctx.clb_nlist.nets().size();
+    float t_exit = 0.005 * cost / cluster_ctx.clb_nlist.nets().size(); // NOLINT(bugprone-narrowing-conversions)
 
     if (t < t_exit) {
 		return (1);
@@ -1105,7 +1119,7 @@ static float starting_t(t_placer_costs* costs,
 
 	/* Set the initial temperature to 20 times the standard of deviation */
 	/* so that the initial temperature adjusts according to the circuit */
-	return (20. * std_dev);
+	return (20. * std_dev); // NOLINT(bugprone-narrowing-conversions)
 }
 
 
@@ -1919,8 +1933,8 @@ static void comp_td_costs(const PlaceDelayModel& delay_model, float *timing_cost
         }
 
         for (unsigned ipin = 1; ipin < cluster_ctx.clb_nlist.net_pins(net_id).size(); ipin++) {
-            float conn_delay = comp_td_point_to_point_delay(delay_model, net_id, ipin);
-            float conn_timing_cost = conn_delay * get_timing_place_crit(net_id, ipin);
+            float conn_delay = comp_td_point_to_point_delay(delay_model, net_id, ipin); // NOLINT(bugprone-narrowing-conversions)
+            float conn_timing_cost = conn_delay * get_timing_place_crit(net_id, ipin); // NOLINT(bugprone-narrowing-conversions)
 
             new_connection_delay_sum += conn_delay;
             point_to_point_delay_cost[net_id][ipin] = conn_delay;
@@ -2037,7 +2051,7 @@ static void free_placement_structs(t_placer_opts placer_opts) {
 /* Allocates the major structures needed only by the placer, primarily for *
 * computing costs quickly and such.                                       */
 static void alloc_and_load_placement_structs(
-	float place_cost_exp, t_placer_opts placer_opts,
+	float place_cost_exp, t_placer_opts placer_opts, // NOLINT(performance-unnecessary-value-param)
 	t_direct_inf *directs, int num_directs) {
 
 	int max_pins_per_clb, i;
@@ -2266,7 +2280,7 @@ static double get_net_wirelength_estimate(ClusterNetId net_id, t_bb *bbptr) {
 
 	if (((cluster_ctx.clb_nlist.net_pins(net_id).size()) > 50)
 			&& ((cluster_ctx.clb_nlist.net_pins(net_id).size()) < 85)) {
-		crossing = 2.7933 + 0.02616 * ((cluster_ctx.clb_nlist.net_pins(net_id).size()) - 50);
+		crossing = 2.7933 + 0.02616 * ((cluster_ctx.clb_nlist.net_pins(net_id).size()) - 50); // NOLINT(bugprone-narrowing-conversions)
 	} else if ((cluster_ctx.clb_nlist.net_pins(net_id).size()) >= 85) {
 		crossing = 2.7933 + 0.011 * (cluster_ctx.clb_nlist.net_pins(net_id).size())
 				- 0.0000018 * (cluster_ctx.clb_nlist.net_pins(net_id).size())
@@ -2286,7 +2300,9 @@ static double get_net_wirelength_estimate(ClusterNetId net_id, t_bb *bbptr) {
 
 	ncost += (bbptr->ymax - bbptr->ymin + 1) * crossing;
 
-	generate_training_data(net_id, bbptr, ncost);
+    #if MODE == 1
+        generate_training_data(net_id, bbptr, ncost);
+    #endif
 
 	return (ncost);
 }
@@ -2303,7 +2319,7 @@ static float get_net_cost(ClusterNetId net_id, t_bb *bbptr) {
 	 * of pins.  Extrapolate for very large nets.                      */
 
 	if ((cluster_ctx.clb_nlist.net_pins(net_id).size()) > 50) {
-		crossing = 2.7933 + 0.02616 * ((cluster_ctx.clb_nlist.net_pins(net_id).size()) - 50);
+		crossing = 2.7933 + 0.02616 * ((cluster_ctx.clb_nlist.net_pins(net_id).size()) - 50); // NOLINT(bugprone-narrowing-conversions)
 		/*    crossing = 3.0;    Old value  */
 	} else {
 		crossing = cross_count[(cluster_ctx.clb_nlist.net_pins(net_id).size()) - 1];
@@ -2316,14 +2332,16 @@ static float get_net_cost(ClusterNetId net_id, t_bb *bbptr) {
 	/* Cost = wire length along channel * cross_count / average      *
 	 * channel capacity.   Do this for x, then y direction and add.  */
 
-	ncost = (bbptr->xmax - bbptr->xmin + 1) * crossing
+	ncost = (bbptr->xmax - bbptr->xmin + 1) * crossing // NOLINT(bugprone-narrowing-conversions)
 			* chanx_place_cost_fac[bbptr->ymax][bbptr->ymin - 1];
 
-	ncost += (bbptr->ymax - bbptr->ymin + 1) * crossing
+	ncost += (bbptr->ymax - bbptr->ymin + 1) * crossing // NOLINT(bugprone-narrowing-conversions)
 			* chany_place_cost_fac[bbptr->xmax][bbptr->xmin - 1];
 
-	//save_wiring_cost(net_id, (bbptr->xmax - bbptr->xmin + 1) + (bbptr->ymax - bbptr->ymin + 1), ncost); //training_data_generation
-	generate_training_data(net_id, bbptr, ncost);
+    #if MODE == 1
+        //save_wiring_cost(net_id, (bbptr->xmax - bbptr->xmin + 1) + (bbptr->ymax - bbptr->ymin + 1), ncost); //training_data_generation
+        generate_training_data(net_id, bbptr, ncost);
+    #endif
 
 	return (ncost);
 }
@@ -3029,9 +3047,9 @@ static void alloc_and_load_for_fast_cost_update(float place_cost_exp) {
 
 	for (size_t high = 0; high < device_ctx.grid.height(); high++)
 		for (size_t low = 0; low <= high; low++) {
-			chanx_place_cost_fac[high][low] = (high - low + 1.)
+			chanx_place_cost_fac[high][low] = (high - low + 1.) // NOLINT(bugprone-narrowing-conversions)
 					/ chanx_place_cost_fac[high][low];
-			chanx_place_cost_fac[high][low] = pow(
+			chanx_place_cost_fac[high][low] = pow( // NOLINT(bugprone-narrowing-conversions)
 					(double) chanx_place_cost_fac[high][low],
 					(double) place_cost_exp);
 		}
@@ -3054,9 +3072,9 @@ static void alloc_and_load_for_fast_cost_update(float place_cost_exp) {
 
 	for (size_t high = 0; high < device_ctx.grid.width(); high++)
 		for (size_t low = 0; low <= high; low++) {
-			chany_place_cost_fac[high][low] = (high - low + 1.)
+			chany_place_cost_fac[high][low] = (high - low + 1.) // NOLINT(bugprone-narrowing-conversions)
 					/ chany_place_cost_fac[high][low];
-			chany_place_cost_fac[high][low] = pow(
+			chany_place_cost_fac[high][low] = pow( // NOLINT(bugprone-narrowing-conversions)
 					(double) chany_place_cost_fac[high][low],
 					(double) place_cost_exp);
 		}
@@ -3234,7 +3252,7 @@ static void free_try_swap_arrays() {
 }
 
 static void calc_placer_stats(t_placer_statistics& stats, float& success_rat, double& std_dev, const t_placer_costs& costs, const int move_lim) {
-	success_rat = ((float) stats.success_sum) / move_lim;
+	success_rat = ((float) stats.success_sum) / move_lim; // NOLINT(bugprone-narrowing-conversions)
 	if (stats.success_sum == 0) {
 		stats.av_cost = costs.cost;
 		stats.av_bb_cost = costs.bb_cost;

@@ -1,8 +1,8 @@
-# Install script for directory: /cygdrive/c/Users/01100/Desktop/VPR/vtr-verilog-to-routing/VPR_PROJECT/libs/EXTERNAL/libblifparse
+# Install script for directory: /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/libs/EXTERNAL/libblifparse
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/cygdrive/c/Users/01100/Desktop/VPR/vtr-verilog-to-routing/VPR_PROJECT")
+  set(CMAKE_INSTALL_PREFIX "/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -33,11 +33,11 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE STATIC_LIBRARY FILES "/cygdrive/c/Users/01100/Desktop/VPR/vtr-verilog-to-routing/VPR_PROJECT/libs/EXTERNAL/libblifparse/libblifparse.a")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE STATIC_LIBRARY FILES "/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/libs/EXTERNAL/libblifparse/libblifparse.a")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/cygdrive/c/Users/01100/Desktop/VPR/vtr-verilog-to-routing/VPR_PROJECT/libs/EXTERNAL/libblifparse/blifparse_test.exe")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/libs/EXTERNAL/libblifparse/blifparse_test.exe")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/blifparse_test.exe" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/blifparse_test.exe")
     if(CMAKE_INSTALL_DO_STRIP)

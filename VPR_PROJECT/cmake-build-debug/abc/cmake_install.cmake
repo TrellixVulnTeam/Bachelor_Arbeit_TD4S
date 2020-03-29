@@ -1,8 +1,8 @@
-# Install script for directory: /cygdrive/c/Users/01100/Desktop/VPR/vtr-verilog-to-routing/VPR_PROJECT/abc
+# Install script for directory: /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/abc
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/cygdrive/c/Users/01100/Desktop/VPR/vtr-verilog-to-routing/VPR_PROJECT")
+  set(CMAKE_INSTALL_PREFIX "/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

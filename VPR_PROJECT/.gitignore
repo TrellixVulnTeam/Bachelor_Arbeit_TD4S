@@ -1,4 +1,7 @@
 .idea/
+vpr/*.net
+vpr/*.place
+vpr/*.rpt
 
 #
 #Executables and generated files
