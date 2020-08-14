@@ -5,4 +5,50 @@
 %************************************************
 \glsresetall % Resets all acronyms to not used
 
-\lipsum[4]
+\section{Training Data}
+
+\subsection{Format}
+
+\subsection{Generation}
+
+\subsubsection{Logging during Placement}
+
+\subsubsection{Synthetic Data}
+
+\section{Neural Networks}
+
+We compare two different types of \glspl{NN} which are both suited to the problem at hand, namely \glspl{CNN} and \glspl{RNN}.
+
+\subsection{\gls{tf} Framework}
+
+\subsection{\gls{CNN}}
+
+\subsubsection{Input Format}
+
+bitmap of possible grid positions, 0 for no terminal, 1 for terminal
+
+\subsubsection{Structure}
+
+\subsubsection{Training}
+
+using tfrecords because of size (memory requirements) of training data
+
+\subsection{\gls{RNN}}
+
+\subsubsection{Input Format}
+
+sequence of coordinate pairs, normalized to [0, 1]
+
+\subsubsection{Structure}
+
+\subsubsection{Training}
+
+custom training loop due to variable sequence length
+
+\section{Integration}
+
+\subsection{\gls{tf} SavedModel}
+
+\subsection{\gls{tf} C API}
+
+\subsection{Compile Time Integration into VPR Placer}
