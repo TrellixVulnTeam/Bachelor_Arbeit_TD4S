@@ -1,0 +1,32 @@
+% !TeX root = ./Thesis.tex
+
+\PassOptionsToPackage{capitalize,noabbrev,ngerman,english}{cleveref} % need to pass languages explicitly
+	\usepackage{cleveref}
+
+\usepackage{datetime} % for formating submission date
+
+\usepackage{lipsum} % for template text
+
+\iftoggle{phd}{
+	\usepackage[LabelsAligned]{currvita} % nice cv style
+}{}
+
+\newcommand{\shorturl}[2]{\href{#1}{\nolinkurl{#2}}} % useful for typesetting DOIs and URNs
+
+% TikZ/PGFPlots
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usetikzlibrary{dsp,chains}
+\usetikzlibrary{positioning}
+%\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+%\newcommand{\z}{\mathpzc{z}}
+% To cache tikz pictures you have to run pdflatex with -shell-escape or --enable-write18
+\ifnum\pdfshellescape=1
+\usepgfplotslibrary{external}
+\tikzexternalize[prefix=gfxcompiled/]
+\fi
+
+% Lengths for matlab2tikz
+\newlength\figureheight
+\newlength\figurewidth 
