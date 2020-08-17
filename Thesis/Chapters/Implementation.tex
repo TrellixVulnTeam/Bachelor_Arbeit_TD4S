@@ -7,48 +7,150 @@
 
 \section{Training Data}
 
-\subsection{Format}
+
 
 \subsection{Generation}
 
-\subsubsection{Logging during Placement}
+We generate training samples by logging real temporary placements of nets occurring during placing in \gls{VPR}.
 
-\subsubsection{Synthetic Data}
+\subsubsection{Data Source}
+
+For this, we adapted the \gls{VPR} Placer to call our logging function whenever the \gls{HPWL} is computed for some net. We then placed the two benchmark circuits \textit{stereovision} and \textit{blob\_merge}, two of the largest \gls{VPR} benchmark circuits, saving the occurring net placements, which results in a huge number of samples from nets with a variety of terminal counts, with many samples for all small terminal counts, getting sparse towards higher values.
+
+One full placement run, however, produces more samples than would be practical to process, so each run was terminated once the size of the plaintext logging file reached around \SI{100}{\mega\byte}.
+
+\subsubsection{Target Value Computation}
+
+Our choice of the target value for the training samples, the wiring cost for wiring a net in isolation using the Maze-Router, needs to be computed from the terminal coordinates of each net placement. While the Maze-Router is already implemented in the \gls{VPR} Router, it is not sufficiently isolated to be callable for a single placed net without significant overhead.
+
+Therefore, we implemented the Maze-Router algorithm ourselves, working with the \gls{VPR} internal data structures holding the nets and their temporary placements.
+
+\subsection{Format}
+
+Before logging a sample, we call this algorithm to obtain the true wiring cost we are trying to learn to predict. We then log three lines of plaintext for each sample, containing all information necessary to reconstruct all relevant information about the temporary net placements:
+
+\begin{itemize}
+	\item \gls{BB} size: X and Y dimensions of the \gls{BB} of the terminal coordinates (this value is only included for convenience and could be computed from the corrdinates themselves)
+	\item list of relative terminal coordinates: first the source terminal, then all sink terminals in the order they are stored in \gls{VPR}; coordinates relative to the lower-left corner of the \gls{BB}
+	\item target value: the wiring cost computed using the Maze-Router
+\end{itemize}
+
+\subsection{Usage}
+
+To use these samples for training a \gls{NN}, they need to be loaded again, and analysing the distribution of samples over terminal count revealed a need to partially balance these sample counts.
+
+\subsubsection{Loading}
+
+The loading of samples is done using a simple state machine looping over the lines of the text files.
+
+\subsubsection{Balancing Terminal Counts}
+
+TODO figures...
+
+This imbalance causes our predictors to focus on correctly predicting the cost of net placements with a low terminal count, while neglecting samples with higher counts. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, placing nets with many terminals optimally is important, as these, although being rare, consume many more routing resources than simple nets.
+
+To that end, we limit the samples per distinct terminal count to a fixed maximum. We set this limit to 4000, which was chosen empirically to be both low enough to sufficiently balance the data, and high enough not to waste samples unnecessarily.
 
 \section{Neural Networks}
 
-We compare two different types of \glspl{NN} which are both suited to the problem at hand, namely \glspl{CNN} and \glspl{RNN}.
+Although the \gls{VTR} project is implemented in C++, we implement and train our \glspl{NN} in Python for the convenience the various data processing libraries provide, and as our selected \gls{NN} framework, \gls{tf}, is primarily available for Python.
 
 \subsection{\gls{tf} Framework}
 
+\gls{tf} is a \gls{ML} framework specialized in Deep Learning.\cite{tensorflow2015-whitepaper} Since its 2.0 release in 2019, it implements the Keras interface\cite{chollet2015keras}, which simplifies model definition to stacking predefined layers types, only requiring to specify input and output tensor dimensions of the full network, as well as architectural parameters, such as neuron count, per layer.
+
 \subsection{\gls{CNN}}
+
+
 
 \subsubsection{Input Format}
 
-bitmap of possible grid positions, 0 for no terminal, 1 for terminal
+For our \gls{CNN}, we have to map the input coordinates to an image. 
+
+First, we subtract the lower-left corner of their \gls{BB}, which is known from the remaining part of the \gls{HPWL} implementation. This helps to reduce the maximum occurring coordinates.
+
+We then prepare a black image (filled with 0-valued pixels) with a fixed size of 64x64px\cite{TODO}. Now, we set the value of the pixels at those coordinates to 1. This results in a binary-valued image, the lower-left corner of which directly maps to the \gls{BB} of the net placement, where all terminals which have to be connected are represented by pixels with a value of 1.
+
+This scheme is only applicable for net placements with \glspl{BB} of no more than that size. However, we selected the size large enough so that all net placements occurring during the placement of the tested benchmarking circuits fit inside this limit. In the modified \gls{VPR} Placer, this limit is checked at runtime, and exceeding placements are handled by falling back to the original \gls{HPWL} computation.
+
+By mapping coordinate values to pixel values, the sample inputs are automatically scaled to the range [0,1], making them appropriate for processing with \glspl{NN}.
+
+The target value for each sample is the unscaled Maze-Router wiring cost, as this saves the effort of post-processing the output in the runtime-critical integration into \gls{VPR}.\cite{TODO}
 
 \subsubsection{Structure}
 
 \subsubsection{Training}
 
-using tfrecords because of size (memory requirements) of training data
+For this network, we use the standard training loop by calling the \textit{fit(...)} method of the \gls{tf} model, specifying training and validation data as well as number of epochs and batch size.
+
+However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples (>1.000.000), it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as tfrecord files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
+
+This generator, which is a slightly adapted version of the one used in a public project by \cite{TODO}, pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
+
+The performance is logged using TensorBoard\cite{TODO}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{TODO}, ready to be deployed to our adapted version of \gls{VPR}.
 
 \subsection{\gls{RNN}}
 
 \subsubsection{Input Format}
 
-sequence of coordinate pairs, normalized to [0, 1]
+As the \gls{RNN} accepts sequences of variable length as input data, we encode the terminal positions as a ordered list of coordinate pairs.
+
+To support efficient training we scale our training data. As the distribution of the terminals inside their \gls{BB} is approximately uniform (based on the properties of the simulated annealing placer), we normalize the coordinates to the range [0,1] by dividing by the maximum of their \glspl{BB}' X and Y dimensions. 
+
+In the Maze-Router, all distances are computed using the Manhattan metric, and the result of the algorithm is a linear combination of distances. Therefore, linear scaling of the input values does not require recomputing the expected result, as the original result can simply be scaled using the same factor used when scaling the inputs.
+
+As the scaling factor itself is not part of the input to the \gls{RNN}, it can only learn to predict the result of the scaled problem. Therefore, we need to post process the predicted output in our adapted \gls{VPR} implementation by rescaling it to the original magnitude using the inverse of the scaling factor of the inputs.
 
 \subsubsection{Structure}
 
 \subsubsection{Training}
 
-custom training loop due to variable sequence length
+Although \glspl{RNN} generally support variable length input sequences, the implementation behind \gls{tf} imposes a limit on this: Input sequences within the same batch of samples are required to have uniform sequence length.
+
+The standard \textit{fit(...)} method, however, only allows the user to specify the training data and batch size, but not to pass predefined batches.
+
+As being able to predict the wiring cost with minimal preprocessing overhead is was the primary reason for choosing \glspl{RNN}, and a network trained only on samples padded to a common size would be unable to accurately predict on unpadded sequences, we implemented a custom training loop. This enables us to train on variably sized samples, by manually defining the batches.
+
+Training with a batch size of 1, also called \textit{online learning}, would enable us to train on a sequence of samples with fully randomized ordering. However, this approach is generally known to not to converge to the same quality of or as stable results as minibatch learning, although being able to converge faster, i.e. on fewer samples. The runtime of the trained network, however, remains the same. As we are interested in getting as accurate predictions as possible for as little computation time as possible, and we have an abundance of training samples, we stick with minibatch learning.
+
+For this, we model epochs by manually looping over the epoch count, and train on each batch separately using the \textit{fit()} method. We do not specify evaluation samples in the \textit{fit} calls, as the evaluation should only be done at the end of each epoch. To this end, we predict the wiring cost for each of the evaluation samples, and compute the metric score manually using the difference to the known true values.
+
+The separation of training samples into batches is done only once in the beginning by sorting the samples by length, selecting consecutive ranges of samples with the same length as batches, and dropping the last non-full batch, if present.
+
+To ensure a randomized order while training, we shuffle the batches both externally and internally each epoch, but we do not shuffle across batch borders for simplicity. We believe this to result in a sufficiently randomized ordering for efficient training.
+
+Due to the custom training loop, the training of our \gls{RNN} model is not supported for supervision using TensorBoard. Therefore, we implemented simple logging and visualization to help in debugging and model selection.
+
+Like our \gls{CNN}, the trained model is saved and can be deployed analogously.
 
 \section{Integration}
 
+For integration of our \glspl{NN} into \gls{VPR}, which is implemented in C++, we modify the Placer in the central \textit{place.cpp} module. We implement an interface to our \glspl{NN} as an abstract class calling the \gls{NN} inference, implemented by a \gls{CNN} wrapper and a \gls{RNN} wrapper, performing model specific pre- and post-processing.
+
 \subsection{\gls{tf} SavedModel}
+
+The \glspl{NN} themselves are saved in the \gls{tf} SavedModel format, which faciliates portability across language bindings of the \gls{tf} framework. 
+	
+As the models are only used for inference, and will no longer be trained, we select not to include the optimizer in the saved model to save space.
 
 \subsection{\gls{tf} C API}
 
+The \gls{tf} C API provides language bindings for C++ as well as plain C. The executable code itself is loaded dynamically from the \textit{tensorflow.dll} dynamic link library.
+
+However, it is not as well maintained as the Python library, and official releases are known often not to work. In our case, the precompiled dll was missing an entry point, so we needed to compile it from the source code. After fixing several incopatabilities and aquiring the necessary requirements, the compilation itself still took severel day, but succeeded eventually.
+
 \subsection{Compile Time Integration into \gls{VPR} Placer}
+
+As our modifications are located at the most performance-critical part of the \gls{VPR} Placer, we opted for compile time selection of operation mode to avoid introducing unnecessary control flow. 
+
+We specified a compile time variable for five possible modes of operation: 
+
+\begin{itemize}
+	\item unchanged \gls{VPR}
+	\item training data generation, writing all temporary net placements to a text file
+	\item \gls{CNN} integration, replacing \gls{HPWL} with our \gls{CNN} interface for all nets with more than 3 terminals and placements not exceeding the hard limit
+	\item \gls{RNN} integration, replacing \gls{HPWL} with our \gls{RNN} interface for all nets with more than 3 terminals
+	\item unchanged with runtime analysis, semantically unchanged \gls{VPR}, but logging timing information
+\end{itemize}
+
+Both \gls{NN} integrtion modes also contain the same runtime analysis as the last mode for comparability.

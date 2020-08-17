@@ -49,10 +49,12 @@ The computational effort of this approach scales linearly with the number of ter
 
 \section{Integration}
 
-Each of the \glspl{NN} directly replaces the \gls{HPWL} heuristic used in the original \gls{VPR} implementation.
+Each of the \glspl{NN}, wrapped in an interface, directly replaces the \gls{HPWL} heuristic used in the original \gls{VPR} implementation.
+
+The interface pre-processes the input (the terminal coordinates of a net), executes the \gls{NN} inference, and post-processes the result to have the same unit as the cost computed by \gls{HPWL}.
 
 However, parts of the \gls{HPWL} implementation, namely \gls{BB} computation and updating, are kept in order to map and normalize the input.
 
-Thus, the remaining part of the \gls{HPWL} implementation, which has constant runtime, is replaced with \gls{NN} inference, which generally has substantially higher runtime. However, it is expected to also yield substantially more accurate wire length estimations, hopefully improving the placement quality enough to make up for the increased computational effort.
+Thus, the actual cost computation part of the \gls{HPWL} implementation, which has constant runtime, is replaced with \gls{NN} inference, which generally has substantially higher runtime. However, it is expected to also yield substantially more accurate wire length estimations, hopefully improving the placement quality enough to make up for the increased computational effort.
 
 
