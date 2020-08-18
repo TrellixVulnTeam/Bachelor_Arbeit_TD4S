@@ -39,7 +39,7 @@ using namespace std;
 #include "read_blif.h"
 #include "arch_types.h"
 #include "echo_files.h"
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 
 vtr::LogicValue to_vtr_logic_value(blifparse::LogicValue);
 

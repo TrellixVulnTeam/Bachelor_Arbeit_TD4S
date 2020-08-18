@@ -979,6 +979,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1024,6 +1027,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1069,6 +1075,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1114,6 +1123,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1160,6 +1172,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1206,6 +1221,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1574,6 +1592,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1620,6 +1641,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1666,6 +1690,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1713,6 +1740,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1760,6 +1790,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -1806,6 +1839,9 @@
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/analysis"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/base"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/draw"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager"/>
+					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/place"/>
 					<Add directory="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/power"/>
@@ -7563,6 +7599,47 @@
 		</Unit>
 		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/main.cpp">
 			<Option target="vpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/c_api.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/c_api_experimental.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager/c_api.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager/c_api_experimental.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/eager/dlpack.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/tf_attrtype.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/tf_datatype.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/tf_file_statistics.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/tf_status.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/include/tensorflow/c/tf_tensor.h">
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/neural_network.cpp">
+			<Option target="vpr"/>
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/neural_network.h">
+			<Option target="vpr"/>
+			<Option target="libvpr"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/neuronal_network.h">
+			<Option target="libvpr"/>
 		</Unit>
 		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack/cluster.cpp">
 			<Option target="libvpr"/>

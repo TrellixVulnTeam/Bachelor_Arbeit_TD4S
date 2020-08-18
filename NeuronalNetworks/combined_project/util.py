@@ -1,5 +1,8 @@
 from parameters import *
 
+import os
+import tensorflow as tf
+
 cross_count = [1.0, 1.0, 1.0, 1.0828, 1.1536, 1.2206, 1.2823, 1.3385, 1.3991, 1.4493, 1.4974, 1.5455, 1.5937, 1.6418,
                1.6899, 1.7304, 1.7709, 1.8114, 1.8519, 1.8924, 1.9288, 1.9652, 2.0015, 2.0379, 2.0743, 2.1061, 2.1379,
                2.1698, 2.2016, 2.2334, 2.2646, 2.2958, 2.3271, 2.3583, 2.3895, 2.4187, 2.4479, 2.4772, 2.5064, 2.5356,
@@ -49,7 +52,7 @@ def get_corrected_bounding_box_cost(bb_cost, number_of_terminals):
     return bb_cost * crossing
 
 
-def read_input_file(normalize, remove_len_2_and_3=True):
+def read_input_file(normalize, respect_ordering=True, remove_len_2_and_3=True):
     """
     TODO
     :return:
@@ -87,7 +90,11 @@ def read_input_file(normalize, remove_len_2_and_3=True):
                     else:
                         coord_pair_list.append([int(x_y_coords[0]),
                                                 int(x_y_coords[1])])
-                current_data_set.append(coord_pair_list)  # third element: list of coordinate pairs
+                if respect_ordering:
+                    current_data_set.append(coord_pair_list)  # third element: list of coordinate pairs
+                else:
+                    coord_pair_list.sort()  # sorts coordinate pairs in ascending order, first by X, then by Y
+                    current_data_set.append(coord_pair_list)  # third element: list of coordinate pairs
                 if normalize:  # TODO
                     current_data_set[1] = (
                                         get_corrected_bounding_box_cost(current_data_set[1], len(coord_pair_list))
@@ -122,6 +129,48 @@ def read_input_file(normalize, remove_len_2_and_3=True):
     return input_data_set_list
 
 
-def read_input_file_no_duplicates(normalize, remove_len_2_and_3=True):
-    input_data_set_list = read_input_file(normalize, remove_len_2_and_3)
+def read_input_file_no_duplicates(normalize, respect_ordering=True, remove_len_2_and_3=True):
+    input_data_set_list = read_input_file(normalize, respect_ordering, remove_len_2_and_3)
     return set(input_data_set_list)
+
+
+def single_example_parser(tf_example_proto_item):
+    """
+    converts a tensorflow "proto item" (format of one sample inside tfrecords) back into plain sample
+    :param tf_example_proto_item: the encoded sample to convert
+    :return: X and y of the sample
+    """
+    # define encoding format (matches the one used when creating the tfrecord files)
+    feature_values = {
+        "mapped_data": tf.io.FixedLenFeature([cnn_input_grid_size, cnn_input_grid_size, 1], dtype=tf.int64),
+        "result": tf.io.FixedLenFeature(shape=(), dtype=tf.int64),
+    }
+    # parse the example
+    tensor_data = tf.io.parse_single_example(tf_example_proto_item, feature_values)
+    # convert X to uint8 image
+    image = tf.cast(tensor_data["mapped_data"], dtype=tf.uint8)
+    # convert y to int32 cost value
+    label = tf.cast(tensor_data["result"], dtype=tf.int32)
+    # return X and y
+    return image, label
+
+
+# define data generator to load samples from disk on demand
+# source: https://jkjung-avt.github.io/tfrecords-for-keras/
+def get_dataset(tfrecords_dir, local_batch_size):
+    """
+    Read TFRecords files and turn them into a TFRecordDataset.
+    :param tfrecords_dir: path to directory where the tfrecord files are stored
+    :param local_batch_size: batch size to be used for training
+    :return: the data generator
+    """
+    files = tf.io.matching_files(os.path.join(tfrecords_dir, '*.tfrecord'))
+    shards = tf.data.Dataset.from_tensor_slices(files)
+    # shards = shards.shuffle(tf.cast(tf.shape(files)[0], tf.int64))
+    shards = shards.repeat()
+    dataset = shards.interleave(tf.data.TFRecordDataset, cycle_length=4)
+    dataset = dataset.shuffle(buffer_size=8192)
+    dataset = dataset.map(map_func=single_example_parser, num_parallel_calls=NUM_DATA_WORKERS)
+    dataset = dataset.batch(batch_size=local_batch_size)
+    dataset = dataset.prefetch(batch_size)
+    return dataset

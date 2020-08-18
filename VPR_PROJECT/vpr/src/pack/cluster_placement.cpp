@@ -24,7 +24,7 @@ using namespace std;
 #include "globals.h"
 #include "atom_netlist.h"
 #include "vpr_utils.h"
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "cluster_placement.h"
 
 /****************************************/

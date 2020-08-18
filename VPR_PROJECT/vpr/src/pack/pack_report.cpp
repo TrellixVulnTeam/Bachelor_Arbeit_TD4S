@@ -4,7 +4,7 @@
 
 #include "vpr_types.h"
 #include "vpr_utils.h"
-#include "histogram.h"
+#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
 
 #include <iostream>
 #include <iomanip>

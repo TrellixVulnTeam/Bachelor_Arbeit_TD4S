@@ -11,7 +11,7 @@
 #include "vpr_error.h"
 
 #include "globals.h"
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "read_place.h"
 #include "read_xml_arch_file.h"
 

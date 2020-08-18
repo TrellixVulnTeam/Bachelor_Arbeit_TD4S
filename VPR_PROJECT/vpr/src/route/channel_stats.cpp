@@ -1,6 +1,6 @@
 #include "channel_stats.h"
 #include "route_util.h"
-#include "histogram.h"
+#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "globals.h"
 
 void print_channel_stats() {

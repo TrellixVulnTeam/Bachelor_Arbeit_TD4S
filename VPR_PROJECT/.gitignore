@@ -4,9 +4,23 @@ vpr/*.place
 vpr/*.rpt
 
 #
+# tensorflow dll because of size
+#
+vpr/src/ml_integration/lib/*
+
+#
+# tensorflow savedmodels because of size
+#
+vpr/src/ml_integration/model
+vpr/src/ml_integration/model_cnn
+vpr/src/ml_integration/model_lstm
+vpr/src/ml_integration/old
+
+#
 #Executables and generated files
 #
 *.exe
+*.stackdump
 ODIN_II/odin_II
 abc_with_bb_support/abc
 ace2/ace

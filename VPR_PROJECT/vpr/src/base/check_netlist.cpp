@@ -12,7 +12,7 @@ using namespace std;
 #include "vpr_types.h"
 #include "vpr_error.h"
 #include "globals.h"
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "vpr_utils.h"
 #include "check_netlist.h"
 #include "read_xml_arch_file.h"

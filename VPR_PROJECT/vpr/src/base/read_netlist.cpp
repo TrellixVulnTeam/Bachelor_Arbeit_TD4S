@@ -25,7 +25,7 @@ using namespace std;
 #include "vpr_error.h"
 #include "vpr_utils.h"
 
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "globals.h"
 #include "atom_netlist.h"
 #include "read_xml_util.h"

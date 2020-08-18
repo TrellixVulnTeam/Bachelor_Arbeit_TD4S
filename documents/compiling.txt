@@ -1,0 +1,9 @@
+compiling using cmake won't work
+
+run 'make vpr' in vtr root.
+
+	needed to modify vpr/CMakeLists.txt:
+		(automatically) added source files to add_library(line42) and add_executable(line 58)
+		added tensorflow linkage information to compiler call arguments (lines 111-122)
+
+requires tensorflow.dll to be in the path (dynamic linkage)

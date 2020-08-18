@@ -8,7 +8,7 @@ using namespace std;
 #include "vpr_types.h"
 #include "vpr_error.h"
 
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "echo_files.h"
 #include "globals.h"
 

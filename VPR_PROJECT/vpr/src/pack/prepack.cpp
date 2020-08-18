@@ -27,7 +27,7 @@ using namespace std;
 #include "read_xml_arch_file.h"
 #include "globals.h"
 #include "atom_netlist.h"
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "prepack.h"
 #include "vpr_utils.h"
 #include "echo_files.h"

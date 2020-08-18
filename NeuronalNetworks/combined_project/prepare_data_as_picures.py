@@ -12,14 +12,20 @@ np.random.seed(np_random_seed)
 print("started")
 
 # read training and test data from file and format it...
-input_data_set_list = read_input_file_no_duplicates(normalize=False)  # TODO
+# eliminates duplicates, both direct ones and same coords with different orderings
+input_data_set_list = list(read_input_file_no_duplicates(normalize=False, respect_ordering=False))
 
 max_grid_size = max(data.max_of_bb_size for data in input_data_set_list) + 1
-print("grid size: ", max_grid_size, "x", max_grid_size)
+print("maximum bb size: {}x{}".format(max_grid_size, max_grid_size))
+print("grid size: {}x{}".format(cnn_input_grid_size, cnn_input_grid_size))
 
-print("shuffle")
+print("shuffling data...")
 np.random.shuffle(input_data_set_list)
 print("shuffled data")
+
+print("additionally limiting data to achieve acceptable training duration...")
+input_data_set_list = input_data_set_list[:cnn_data_hard_limit]
+print("limited data to {} samples (including train, val and test set.".format(cnn_data_hard_limit))
 
 # print("input data array:")
 # print(input_data_set_list)
@@ -52,12 +58,12 @@ for category in TRAIN_VAL_TEST_DESCRIPTORS:
     pure_hpwl_mse = 0
     average_bb_size = 0
     for dataset in current_data_set_list:
-        mapped_data = np.zeros((max_grid_size, max_grid_size), np.uint8)
+        mapped_data = np.zeros((cnn_input_grid_size, cnn_input_grid_size), np.uint8)
         for coordinates in dataset.coordinate_pairs:
             mapped_data[coordinates[0]][coordinates[1]] = 1
 
         item_counter_in_record += 1
-        if item_counter_in_record > 1000: # "the recommended number of images stored in one tfrecord file is 1000."
+        if item_counter_in_record > 1000:  # "the recommended number of images stored in one tfrecord file is 1000."
             print(mapped_data)
             item_counter_in_record = 1
             record_counter += 1
@@ -86,7 +92,8 @@ for category in TRAIN_VAL_TEST_DESCRIPTORS:
 
     with open(current_base_path + "characteristics.txt", "w") as text_file:
         print("{} # size of data set".format(len(current_data_set_list)), file=text_file)
-        print("{} # max grid size (dimension of encoded data)".format(max_grid_size), file=text_file)
+        print("{} # max occurring bb size".format(max_grid_size), file=text_file)
+        print("{} # grid size limit (dimension of encoded data)".format(cnn_input_grid_size), file=text_file)
         print("{} # hpwl mse".format(hpwl_mse), file=text_file)
         print("{} # pure hpwl mse".format(pure_hpwl_mse), file=text_file)
         print("{} # average bb size".format(average_bb_size), file=text_file)

@@ -6,7 +6,7 @@
  * 3: is ml_integration LSTM = wiring cost estimation via LSTM NN, includes features of reference
  * 4: is ml_integration CNN = wiring cost estimation via CNN NN, includes features of reference
  */
-#define MODE 0
+#define MODE 3
 
 #include <cstdio>
 #include <cmath>
@@ -35,7 +35,7 @@ using namespace std;
 #include "echo_files.h"
 #include "vpr_utils.h"
 #include "place_macro.h"
-#include "histogram.h"
+#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "place_util.h"
 #include "place_delay_model.h"
 
@@ -48,6 +48,11 @@ using namespace std;
 
 #if MODE == 1
     #include "training_data_net_writer.h" //training_data_generation
+#endif
+#if MODE == 3 || MODE == 4
+    #include "neural_network.h"
+    #include <cstdio>
+    TfModelInterface* model;
 #endif
 
 /************** Types and defines local to place.c ***************************/
@@ -370,6 +375,28 @@ void try_place(t_placer_opts placer_opts, // NOLINT(performance-unnecessary-valu
 	 * width of the widest channel.  Place_cost_exp says what exponent the   *
 	 * width should be taken to when calculating costs.  This allows a       *
 	 * greater bias for anisotropic architectures.                           */
+
+
+#if MODE == 3 || MODE == 4
+    printf("press any key...\n");
+    std::cin.ignore();
+    std::string tmp;
+    getline(std::cin, tmp);
+#endif
+#if MODE == 3
+    printf("trying to initialize lstm...\n");
+    model = new LSTM();
+#endif
+#if MODE == 4
+    printf("trying to initialize cnn...\n");
+    model = new CNN();
+#endif
+#if MODE == 3 || MODE == 4
+    printf("success.\ntrying to predict sth...\n");
+    float prediction = model->debug();
+    printf("success.\n");
+    printf("%f\n", prediction);
+#endif
 
 	int tot_iter, move_lim, moves_since_cost_recompute, width_fac, num_connections,
 		outer_crit_iter_count, inner_recompute_limit;
@@ -791,6 +818,11 @@ void try_place(t_placer_opts placer_opts, // NOLINT(performance-unnecessary-valu
 	}
 
 	free_try_swap_arrays();
+
+#if MODE == 3 || MODE == 4
+	delete model; // free explicitly allocated memory
+#endif
+
 }
 
 /* Function to recompute the criticalities before the inner loop of the annealing */
@@ -2269,6 +2301,17 @@ static void get_bb_from_scratch(ClusterNetId net_id, t_bb *coords,
 
 static double get_net_wirelength_estimate(ClusterNetId net_id, t_bb *bbptr) {
 
+#if MODE == 3 || MODE == 4 // cost computation using NN
+
+    double cost_predicted_by_nn = model->predict_wiring_cost(net_id, bbptr);
+
+    if(cost_predicted_by_nn >= 0) // return cost if prediction succeeded
+        return cost_predicted_by_nn;
+
+    // if NN unable (size limit exceeded) or unwilling (inefficient for <= 3 terminals) to predict, fall back to HPWL
+
+#endif // normal cost calculation (HPWL)
+
 	/* WMF: Finds the estimate of wirelength due to one net by looking at   *
 	 * its coordinate bounding box.                                         */
 
@@ -2300,14 +2343,26 @@ static double get_net_wirelength_estimate(ClusterNetId net_id, t_bb *bbptr) {
 
 	ncost += (bbptr->ymax - bbptr->ymin + 1) * crossing;
 
-    #if MODE == 1
-        generate_training_data(net_id, bbptr, ncost);
-    #endif
+#if MODE == 1
+    generate_training_data(net_id, bbptr, ncost);
+#endif
 
 	return (ncost);
+
 }
 
 static float get_net_cost(ClusterNetId net_id, t_bb *bbptr) {
+
+#if MODE == 3 || MODE == 4 // cost computation using NN
+
+    double cost_predicted_by_nn = model->predict_wiring_cost(net_id, bbptr);
+
+    if(cost_predicted_by_nn >= 0) // return cost if prediction succeeded
+        return cost_predicted_by_nn;
+
+    // if NN unable (size limit exceeded) or unwilling (inefficient for <= 3 terminals) to predict, fall back to HPWL
+
+#endif // normal cost calculation (HPWL)
 
 	/* Finds the cost due to one net by looking at its coordinate bounding  *
 	 * box.                                                                 */
@@ -2338,12 +2393,13 @@ static float get_net_cost(ClusterNetId net_id, t_bb *bbptr) {
 	ncost += (bbptr->ymax - bbptr->ymin + 1) * crossing // NOLINT(bugprone-narrowing-conversions)
 			* chany_place_cost_fac[bbptr->xmax][bbptr->xmin - 1];
 
-    #if MODE == 1
-        //save_wiring_cost(net_id, (bbptr->xmax - bbptr->xmin + 1) + (bbptr->ymax - bbptr->ymin + 1), ncost); //training_data_generation
-        generate_training_data(net_id, bbptr, ncost);
-    #endif
+#if MODE == 1
+    //save_wiring_cost(net_id, (bbptr->xmax - bbptr->xmin + 1) + (bbptr->ymax - bbptr->ymin + 1), ncost); //training_data_generation
+    generate_training_data(net_id, bbptr, ncost);
+#endif
 
 	return (ncost);
+
 }
 
 /* Finds the bounding box of a net and stores its coordinates in the  *

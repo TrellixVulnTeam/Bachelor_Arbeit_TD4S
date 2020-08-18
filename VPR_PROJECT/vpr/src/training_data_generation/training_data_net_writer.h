@@ -31,7 +31,7 @@
 #include "echo_files.h"
 #include "vpr_utils.h"
 #include "place_macro.h"
-#include "histogram.h"
+#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "place_util.h"
 #include "place_delay_model.h"
 

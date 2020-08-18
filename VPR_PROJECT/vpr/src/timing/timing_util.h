@@ -5,7 +5,7 @@
 #include "tatum/timing_analyzers.hpp"
 #include "tatum/TimingConstraints.hpp"
 #include "tatum/timing_paths.hpp"
-#include "histogram.h"
+#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "timing_info_fwd.h"
 #include "DomainPair.h"
 

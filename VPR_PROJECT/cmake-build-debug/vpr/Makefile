@@ -1292,6 +1292,36 @@ src/main.cpp.s:
 	cd /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/cmake-build-debug && $(MAKE) -f vpr/CMakeFiles/vpr.dir/build.make vpr/CMakeFiles/vpr.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/ml_integration/neural_network.o: src/ml_integration/neural_network.cpp.o
+
+.PHONY : src/ml_integration/neural_network.o
+
+# target to build an object file
+src/ml_integration/neural_network.cpp.o:
+	cd /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/cmake-build-debug && $(MAKE) -f vpr/CMakeFiles/vpr.dir/build.make vpr/CMakeFiles/vpr.dir/src/ml_integration/neural_network.cpp.o
+	cd /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/cmake-build-debug && $(MAKE) -f vpr/CMakeFiles/libvpr.dir/build.make vpr/CMakeFiles/libvpr.dir/src/ml_integration/neural_network.cpp.o
+.PHONY : src/ml_integration/neural_network.cpp.o
+
+src/ml_integration/neural_network.i: src/ml_integration/neural_network.cpp.i
+
+.PHONY : src/ml_integration/neural_network.i
+
+# target to preprocess a source file
+src/ml_integration/neural_network.cpp.i:
+	cd /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/cmake-build-debug && $(MAKE) -f vpr/CMakeFiles/vpr.dir/build.make vpr/CMakeFiles/vpr.dir/src/ml_integration/neural_network.cpp.i
+	cd /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/cmake-build-debug && $(MAKE) -f vpr/CMakeFiles/libvpr.dir/build.make vpr/CMakeFiles/libvpr.dir/src/ml_integration/neural_network.cpp.i
+.PHONY : src/ml_integration/neural_network.cpp.i
+
+src/ml_integration/neural_network.s: src/ml_integration/neural_network.cpp.s
+
+.PHONY : src/ml_integration/neural_network.s
+
+# target to generate assembly for a file
+src/ml_integration/neural_network.cpp.s:
+	cd /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/cmake-build-debug && $(MAKE) -f vpr/CMakeFiles/vpr.dir/build.make vpr/CMakeFiles/vpr.dir/src/ml_integration/neural_network.cpp.s
+	cd /cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/cmake-build-debug && $(MAKE) -f vpr/CMakeFiles/libvpr.dir/build.make vpr/CMakeFiles/libvpr.dir/src/ml_integration/neural_network.cpp.s
+.PHONY : src/ml_integration/neural_network.cpp.s
+
 src/pack/cluster.o: src/pack/cluster.cpp.o
 
 .PHONY : src/pack/cluster.o
@@ -3426,6 +3456,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/ml_integration/neural_network.o"
+	@echo "... src/ml_integration/neural_network.i"
+	@echo "... src/ml_integration/neural_network.s"
 	@echo "... src/pack/cluster.o"
 	@echo "... src/pack/cluster.i"
 	@echo "... src/pack/cluster.s"

@@ -2,3 +2,9 @@
 __pycache__/
 input_files/
 *.txt
+
+# tfrecord files
+*/*/*.tfrecord
+
+# trained models
+models

@@ -20,7 +20,7 @@ set_property(CACHE VPR_EXECUTION_ENGINE PROPERTY STRINGS auto serial tbb)
 
 option(VPR_USE_SIGNAL_HANDLER "Should VPR use a signal handler to intercept signals (e.g. SIGINT)?" OFF)
 
-option(VPR_IPO_BUILD "Should VPR be compiled with an interprocedural optimizations?" ON)
+option(VPR_IPO_BUILD "Should VPR be compiled with an interprocedural optimizations?" OFF)
 
 set(VPR_PGO_CONFIG "none" CACHE STRING "Configure VPR Profile-Guided Optimization (PGO). prof_gen: built executable will produce profiling info, prof_use: built executable will be optimized based on generated profiling info, none: disable pgo")
 set_property(CACHE VPR_PGO_CONFIG PROPERTY STRINGS prof_gen prof_use none)
@@ -39,7 +39,7 @@ files_to_dirs(LIB_HEADERS LIB_INCLUDE_DIRS)
 #Create the library
 add_library(libvpr STATIC
              ${LIB_HEADERS}
-             ${LIB_SOURCES})
+             ${LIB_SOURCES} src/ml_integration/neural_network.cpp src/ml_integration/neural_network.h)
 target_include_directories(libvpr PUBLIC ${LIB_INCLUDE_DIRS})
 set_target_properties(libvpr PROPERTIES PREFIX "") #Avoid extra 'lib' prefix
 
@@ -55,7 +55,7 @@ target_link_libraries(libvpr
                         libpugixml)
 
 #Create the executable
-add_executable(vpr ${EXEC_SOURCES})
+add_executable(vpr ${EXEC_SOURCES} src/ml_integration/neural_network.cpp src/ml_integration/neural_network.h)
 target_link_libraries(vpr
                         libvpr)
 
@@ -106,6 +106,20 @@ else()
 endif()
 
     find_package(TBB)
+
+
+#
+# add tensorflow linkage flage
+#
+target_compile_options(libvpr PUBLIC -I${CMAKE_CURRENT_SOURCE_DIR}/src/ml_integration/include/)
+target_compile_options(vpr PUBLIC -I${CMAKE_CURRENT_SOURCE_DIR}/src/ml_integration/include/)
+target_link_libraries(vpr -I${CMAKE_CURRENT_SOURCE_DIR}/src/ml_integration/include/)
+target_compile_options(libvpr PUBLIC -L${CMAKE_CURRENT_SOURCE_DIR}/src/ml_integration/lib)
+target_compile_options(vpr PUBLIC -L${CMAKE_CURRENT_SOURCE_DIR}/src/ml_integration/lib)
+target_link_libraries(vpr -L${CMAKE_CURRENT_SOURCE_DIR}/src/ml_integration/lib)
+target_compile_options(libvpr PUBLIC -ltensorflow)
+target_compile_options(vpr PUBLIC -ltensorflow)
+target_link_libraries(vpr -ltensorflow)
 
 #
 # Execution Engine Configuration

@@ -34,7 +34,7 @@
 #include "read_xml_arch_file.h"
 #include "vpr_types.h"
 #include "globals.h"
-#include "hash.h"
+#include "../util/hash.h" // specified import more precisely because of header file with same name in tensorflow package
 #include "cluster_feasibility_filter.h"
 #include "vpr_utils.h"
 

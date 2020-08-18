@@ -11,3 +11,40 @@ bb coordinates notjust block coordinates leading to segfault because invalid arr
 		 * the which channels are included within the bounding box, and it         *
 		 * simplifies the code a lot.                                              */
 
+using trained model in C++ requires tensorflow c-api
+	-> precompiled api not working due to missing entry point in dll
+		- verified this using dependency walker
+		-> try to compile tensorflow from source
+			- requires bezel build system 
+				-> installed bezel
+					-requires MSVC 2015
+						->try to install
+							->failed, skip for now
+				- bezel 2.2.0 not compatible, requires downgrade
+				-> deinstall bezel 2.2.0 and install bezel 2.0.0
+			- bezel build fails because "patch" is not installed
+				-> download installer and install from gnu patch project site
+					-> bezel fails due to access denied on patch
+					- manually running "patch" requires admin
+						-> download "patch" source, configure, build
+			-> patch working, but bezel fails due to missing MSVC (Visual C++ Build Tools)
+				- installation fails because 2015-2019 version already installed and incompatible to 2015 version
+					- uninstall 2015-2019 version and install 1015 version
+					-> bazel build still fails with"requires Visual C++ build tools"
+						-> restart PC...
+						- still missing build tools, but slightly different error message
+						-> installing "Build Tools for Visual Studio 2019 "
+							-> waiting... (3.38GB download)
+			- starting to compile
+			-> fails after a few minutes: C++ compilation of rule ... failed (error C2061: syntax error: identifier 'Kind')
+				- similar problem found on stackexchange -> ried to install newest VS redistributable
+				- already installed
+				-> "repair installation"
+				- still same error
+					-> remove VS 2015 and VS 2017 packages from VS installation to force usage of VS 2019
+			-> new error: ERROR: Action failed to execute: java.io.IOException: ERROR: src/main/native/windows/process.cc(199): CreateProcessW("C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\cl.exe" [...] : The system cannot find the file specified.
+				-> copy that executable from the VS bin path to the required path
+				-> new error: Cannot open include file: 'stdint.h': No such file or directory
+					-> also copy over include direcory (and lib and crt while we're at it)
+
+				
