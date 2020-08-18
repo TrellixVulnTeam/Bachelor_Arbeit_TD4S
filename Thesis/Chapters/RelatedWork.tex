@@ -113,7 +113,7 @@ A rather recent development in the field of \glspl{RNN} is the \gls{LSTM}\cite{T
 
 \subsection{Application in Wirelength Estimation}
 
-In general, \glspl{NN} are able to approximate arbitrarily complex target functions\cite{TODO} within polynomial asymptotic complexity\cite{NN-complexity-web}. However, in praxis, even simple networks are often sufficient to obtain an estimator achieving very low prediction errors. Not only is the complexity of these estimators lower than their target function, but they also have low runtime in practice, making them faster even for small inputs.
+In general, \glspl{NN} are able to approximate arbitrarily complex target functions\cite{TODO} within polynomial asymptotic complexity\cite{NN-complexity-web}\cite{TODO}. However, in praxis, even simple networks are often sufficient to obtain an estimator achieving very low prediction errors. Not only is the complexity of these estimators lower than their target function, but they also have low runtime in practice, making them faster even for small inputs.
 
 Therefore, we believe \glspl{NN} could be suited as a wiring cost estimator by predicting the wiring cost of a the current placement of a net, receiving the coordinates of its terminals as inputs. 
 
@@ -123,7 +123,7 @@ They are expected to produce vastly more accurate estimations than the \gls{HPWL
 
 In order to be able to train a \gls{NN} using supervised learning, we need training examples consisting of sample inputs and their expected prediction value, in our case terminal coordinates and the minimum wiring cost.
 
-However, we currently have two competing candidates for the minimum wiring cost of a net placement: The \gls{RSMT}, specifying the minimum possible wiring cost, and the length of the wiring tree computed by the Maze-Algorithm\cite{TODO}, specifying the minimum wiring cost achievable by the \gls{VPR} Router, which might be higher than the \gls{RSMT} cost.
+However, we currently have two competing candidates for the minimum wiring cost of a net placement: The \gls{RSMT}, specifying the minimum possible wiring cost, and the length of the wiring tree computed by the Maze-Router algorithm\cite{Maze-Router}, specifying the minimum wiring cost achievable by the \gls{VPR} Router, which might be higher than the \gls{RSMT} cost.
 
 As our goal is to achieve optimal final results for the placed and routed circuit, we have to optimize the Placer to produce outputs optimal for the Router used, so it can then route the circuit as efficiently as it is able to. Therefore, we decided to use the cost computed using the Maze-Algorithm, optimizing the placement for the routing algorithm present, not for a hypothetical ideal one.
 
