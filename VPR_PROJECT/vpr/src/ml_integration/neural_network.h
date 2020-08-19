@@ -2,6 +2,8 @@
 // Created by 01100 on 15/08/2020.
 //
 
+#define DEBUG_NN 0
+
 #ifndef VTR_NEURAL_NETWORK_H
 #define VTR_NEURAL_NETWORK_H
 
@@ -42,7 +44,7 @@
 
 #define CNN_INPUT_GRID_SIZE 64
 #define LSTM_ENTRY_POINT "serving_default_lstm_2_input"
-#define CNN_ENTRY_POINT "serving_default_cnn_2_input" // TODO set correct value
+#define CNN_ENTRY_POINT "serving_default_conv2d_2_input"
 
 
 class TfModelInterface {
@@ -60,10 +62,12 @@ public:
     /// \return if terminal count <= 3: -1; else: the predicted wiring cost if prediction succeeded, -1 else
     float predict_wiring_cost(ClusterNetId net_id, t_bb* bbptr);
 
+#if DEBUG_NN
     /// debug method to test NN integration. generates a minimal sample of already mapped coordinates and directly
     /// calls encode_and_predict(...)
     /// \return a positive value if prediction succeeded
     virtual float debug() = 0;
+#endif
 
 protected:
 
@@ -117,7 +121,9 @@ private:
 class LSTM: public TfModelInterface {
 public:
     LSTM();
+#if DEBUG_NN
     float debug() override;
+#endif
 protected:
     float preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned long number_of_terminals,
                                  const ClusteringContext& cluster_ctx) override;
@@ -127,7 +133,9 @@ protected:
 class CNN: public TfModelInterface {
 public:
     CNN();
+#if DEBUG_NN
     float debug() override;
+#endif
 protected:
     float preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned long number_of_terminals,
                                  const ClusteringContext& cluster_ctx) override;

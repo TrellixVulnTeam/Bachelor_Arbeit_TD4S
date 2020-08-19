@@ -51,7 +51,6 @@ using namespace std;
 #endif
 #if MODE == 3 || MODE == 4
     #include "neural_network.h"
-    #include <cstdio>
     TfModelInterface* model;
 #endif
 
@@ -377,26 +376,14 @@ void try_place(t_placer_opts placer_opts, // NOLINT(performance-unnecessary-valu
 	 * greater bias for anisotropic architectures.                           */
 
 
-#if MODE == 3 || MODE == 4
-    printf("press any key...\n");
-    std::cin.ignore();
-    std::string tmp;
-    getline(std::cin, tmp);
-#endif
+
 #if MODE == 3
-    printf("trying to initialize lstm...\n");
     model = new LSTM();
 #endif
 #if MODE == 4
-    printf("trying to initialize cnn...\n");
     model = new CNN();
 #endif
-#if MODE == 3 || MODE == 4
-    printf("success.\ntrying to predict sth...\n");
-    float prediction = model->debug();
-    printf("success.\n");
-    printf("%f\n", prediction);
-#endif
+
 
 	int tot_iter, move_lim, moves_since_cost_recompute, width_fac, num_connections,
 		outer_crit_iter_count, inner_recompute_limit;
