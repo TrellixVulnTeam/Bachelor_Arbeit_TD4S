@@ -9,26 +9,51 @@
 
 \subsection{Selected Benchmarks}
 
+For the final evaluation we select three circuits from the \gls{VPR} benchmark suite that we did not use in any prior part of this project. We select the circuits quasi-randomly, but ensuring that at least each one \textit{big} and one \textit{small} circuit is chosen.
+
+In the same manner we also select an equally sized \textit{evaluation} set of circuits, which we will need for our chosen method of model selection, detailed in \ref{ch:model-selection}.
+
+As the \gls{VPR} Placement algorithm is a pseudo-randomized heuristic not guarantee to yield reproducible results (when starting from a different state), each evaluation on each of this circuits will be averaged over 3\cite{TODO} redundant placing attempts to ensure robust results.
+
 \subsection{Runtime/Quality Trade-off}
 
-\section{Model Selection}
+Our metric of choice is runtime/quality trade-off, specifically discretely sampled result quality (score for the placed and routed circuit computed by \gls{VPR}) for certain approximate absolute placement run-times. These run-times, or sampling points, are selected per benchmark circuit relative to the runtime of the unchanged \gls{VPR} Placer (t\textsubscript{p}) as:
+
+\begin{itemize}
+	\item 0.1 * t\textsubscript{p}, or \textit{fast-mode}
+	\item 1   * t\textsubscript{p}, or \textit{normal-mode}
+	\item 10  * t\textsubscript{p}, or \textit{slow-mode}
+	\item \cite{TODO} values might change when eval. is performed
+\end{itemize}
+
+The actual run-time, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{steps\_per\_temperature}\cite{TODO} setting of \gls{VPR}. By placing a benchmark circuit using the default setting of \cite{TODO}, we acquire the run-time at this setting. 
+
+Based on observations we state without formal proof that most of the computations of the \gls{VPR} Placer are performed inside each of these steps. Furthermore, while steps perform random actions and can have vastly differing run-time, within a certain \textit{temperature level} steps with different run-times are distributed randomly, and the number of steps per temperature is generally high. Therefore, changing this number of steps will not change the distribution of step run-times within a certain temperature-level, which means their average run-time remains approximately the same. Therefore, changes to the \textit{steps\_per\_temperature} parameter affect the total runtime of the \gls{VPR} Placer approximately linearly.
+
+Now we can scale \textit{steps\_per\_temperature} appropriately and gain quality scores for each sampling point.
+
+\section{Model Selection}\label{ch:model-selection}
 
 \subsection{Empirical Model Search}
 
+experimented until "working training" observed, then tried to minimize model complexity to minimize runtime (empirically). 
+
+then define HPO parameters and domains, then HPO itself.
+
 \subsection{\gls{HPO}}
 
-\subsubsection{\gls{NN} Performance}
-
-\subsubsection{Overall System Performance}
+select best model by actual quality on the eval set. don't select by NN loss metric (mse), as this does not respect run-time differences. instead integrate each possible model into vpr, eval run-time, adjust run-time (only within HPO set, not across lstm/cnn), place eval circuit, route it and use reported routing quality as score
 
 \section{Results}
 
 \subsection{Reference System (Unchanged \gls{VPR})}
 
-\subsection{Selection by \gls{NN} Performance}
+\subsection{\gls{LSTM} Integration}
 
-\subsection{Selection by Overall System Performance}
+\subsection{\gls{CNN} Integration}
 
 \subsection{Comparison}
 
 \subsection{Justification}
+
+covers discussion chapter?

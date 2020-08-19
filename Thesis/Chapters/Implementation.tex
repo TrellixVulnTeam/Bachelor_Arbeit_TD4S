@@ -47,7 +47,7 @@ The loading of samples is done using a simple state machine looping over the lin
 
 TODO figures...
 
-This imbalance causes our predictors to focus on correctly predicting the cost of net placements with a low terminal count, while neglecting samples with higher counts. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, placing nets with many terminals optimally is important, as these, although being rare, consume many more routing resources than simple nets.
+This imbalance causes our predictors \cite{TODO only lstms} to focus on correctly predicting the cost of net placements with a low terminal count, while neglecting samples with higher counts. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, placing nets with many terminals optimally is important, as these, although being rare, consume many more routing resources than simple nets.
 
 To that end, we limit the samples per distinct terminal count to a fixed maximum. We set this limit to 4000, which was chosen empirically to be both low enough to sufficiently balance the data, and high enough not to waste samples unnecessarily.
 
@@ -71,7 +71,7 @@ First, we subtract the lower-left corner of their \gls{BB}, which is known from 
 
 We then prepare a black image (filled with 0-valued pixels) with a fixed size of 64x64px\cite{TODO}. Now, we set the value of the pixels at those coordinates to 1. This results in a binary-valued image, the lower-left corner of which directly maps to the \gls{BB} of the net placement, where all terminals which have to be connected are represented by pixels with a value of 1.
 
-This scheme is only applicable for net placements with \glspl{BB} of no more than that size. However, we selected the size large enough so that all net placements occurring during the placement of the tested benchmarking circuits fit inside this limit. In the modified \gls{VPR} Placer, this limit is checked at runtime, and exceeding placements are handled by falling back to the original \gls{HPWL} computation.
+This scheme is only applicable for net placements with \glspl{BB} of no more than that size. However, we selected the size large enough so that all net placements occurring during the placement of the tested benchmarking circuits fit inside this limit. Indeed, the maximum \gls{BB} side length logged during training data generation is 54 units, therefore 64 units provides a certain upward margin for robustness. In the modified \gls{VPR} Placer, this limit is checked at runtime, and exceeding placements are handled by falling back to the original \gls{HPWL} computation.
 
 By mapping coordinate values to pixel values, the sample inputs are automatically scaled to the range [0,1], making them appropriate for processing with \glspl{NN}.
 
@@ -83,7 +83,7 @@ The target value for each sample is the unscaled Maze-Router wiring cost, as thi
 
 For this network, we use the standard training loop by calling the \textit{fit(...)} method of the \gls{tf} model, specifying training and validation data as well as number of epochs and batch size.
 
-However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples (>1.000.000), it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as tfrecord files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
+However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples (>1.000.000), it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
 
 This generator, which is a slightly adapted version of the one used in a public project by \cite{TODO}, pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
 
@@ -143,14 +143,11 @@ However, it is not as well maintained as the Python library, and official releas
 
 As our modifications are located at the most performance-critical part of the \gls{VPR} Placer, we opted for compile time selection of operation mode to avoid introducing unnecessary control flow. 
 
-We specified a compile time variable for five possible modes of operation: 
+We specified a compile time variable for four possible modes of operation: 
 
 \begin{itemize}
 	\item unchanged \gls{VPR}
 	\item training data generation, writing all temporary net placements to a text file
 	\item \gls{CNN} integration, replacing \gls{HPWL} with our \gls{CNN} interface for all nets with more than 3 terminals and placements not exceeding the hard limit
 	\item \gls{RNN} integration, replacing \gls{HPWL} with our \gls{RNN} interface for all nets with more than 3 terminals
-	\item unchanged with runtime analysis, semantically unchanged \gls{VPR}, but logging timing information
 \end{itemize}
-
-Both \gls{NN} integrtion modes also contain the same runtime analysis as the last mode for comparability.
