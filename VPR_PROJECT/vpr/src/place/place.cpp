@@ -6,7 +6,7 @@
  * 3: is ml_integration LSTM = wiring cost estimation via LSTM NN, includes features of reference
  * 4: is ml_integration CNN = wiring cost estimation via CNN NN, includes features of reference
  */
-#define MODE 3
+#define MODE 4
 
 #include <cstdio>
 #include <cmath>

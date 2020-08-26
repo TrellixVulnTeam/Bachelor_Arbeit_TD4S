@@ -3,6 +3,7 @@
 //
 
 #define DEBUG_NN 0
+#define DEBUG_NN_INTERACTIVE 0
 
 #ifndef VTR_NEURAL_NETWORK_H
 #define VTR_NEURAL_NETWORK_H
@@ -44,7 +45,7 @@
 
 #define CNN_INPUT_GRID_SIZE 64
 #define LSTM_ENTRY_POINT "serving_default_lstm_2_input"
-#define CNN_ENTRY_POINT "serving_default_conv2d_2_input"
+#define CNN_ENTRY_POINT "serving_default_flatten_8_input" // "serving_default_conv2d_2_input"
 
 
 class TfModelInterface {
@@ -71,10 +72,9 @@ public:
 
 protected:
 
-    /// performs NN inference of a readily encoded sample
-    /// \param InputValues the encoded sample
+    /// performs NN inference of a readily encoded sample stored in the InputValues field
     /// \return the predicted cost value, which might need post-processing
-    float predict(TF_Tensor **InputValues);
+    float predict();
 
     /// maps terminal coordinates of the given net onto appropriate input format for NN and then calls encode_and_predict(...) to get
     /// the predicted wiring cost of the net
@@ -96,6 +96,8 @@ protected:
     int NumInputs;
     /// reusable tensor for the NN to temporarily store its input in
     TF_Tensor **InputValues;
+
+    int counter; // TODO
 
 private:
 

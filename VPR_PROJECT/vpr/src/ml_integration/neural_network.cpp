@@ -78,6 +78,8 @@ void TfModelInterface::init(const char *saved_model_dir, const char *nn_input_en
     debug();
 #endif
 
+    counter = 0; // TODO
+
 }
 
 TfModelInterface::~TfModelInterface() {
@@ -103,7 +105,12 @@ float TfModelInterface::predict_wiring_cost(ClusterNetId net_id, t_bb* bbptr) {
 
 }
 
-float TfModelInterface::predict(TF_Tensor **InputValues) {
+float TfModelInterface::predict() {
+
+    counter++;
+
+//    if(counter > 186410)
+//        printf("counter: %d\n", counter); // TODO
 
     // Run the Session
     TF_SessionRun(Session, nullptr, Input, InputValues, NumInputs, Output,
@@ -125,10 +132,14 @@ float TfModelInterface::predict(TF_Tensor **InputValues) {
     printf("Result Tensor :\n");
     printf("%f\n",prediction[0]);
 
-    std::cin.ignore();
-    std::string tmp;
-    getline(std::cin, tmp);
+    #if DEBUG_NN_INTERACTIVE
+        std::cin.ignore();
+        std::string tmp;
+        getline(std::cin, tmp);
+    #endif
 #endif
+
+    TF_DeleteTensor(OutputValues[0]); // TODO
 
     return prediction[0];
 }
@@ -218,7 +229,7 @@ float LSTM::encode_and_predict(void* mapped_input, unsigned long terminal_count)
 
     InputValues[0] = float_tensor;
 
-    return predict(InputValues);
+    return predict();
 }
 
 /*
@@ -234,10 +245,10 @@ CNN::CNN() {
 
 #if DEBUG_NN
 float CNN::debug() {
-    uint8_t tmp[1][CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE] = {0};
-    tmp[0][0][0] = 1;
-    tmp[0][4][2] = 1;
-    tmp[0][1][5] = 1;
+    float tmp[1][CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1] = {};
+    tmp[0][0][0][0] = 1.0f;
+    tmp[0][4][2][0] = 1.0f;
+    tmp[0][1][5][0] = 1.0f;
     return encode_and_predict(((void*) tmp), 3);
 }
 #endif
@@ -254,8 +265,14 @@ float CNN::preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned lon
     // auto& grid = device_ctx.grid;
     auto& place_ctx = g_vpr_ctx.placement();
 
+//    if(counter > 186410)
+//        printf("creating image: %d\n", counter); // TODO
+
     // prepare grid (1 image of dimensions CNN_INPUT_GRID_SIZE*CNN_INPUT_GRID_SIZE)
-    uint8_t image[1][CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1] = {0}; // initialize whole array to 0
+    float image[1][CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1] = {}; // initialize whole array to 0
+
+//    if(counter > 186410)
+//        printf("created image: %d\n", counter); // TODO
 
     // process source
     ClusterBlockId bnum = cluster_ctx.clb_nlist.net_driver_block(net_id); //source
@@ -266,7 +283,7 @@ float CNN::preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned lon
 
     // float bb_size = std::max(bbptr->xmax - bbptr->xmin, bbptr->ymax - bbptr->ymin);
 
-    image[0][x - bbptr->xmin][y - bbptr->ymin][0] = 1; // set pixel at position of source terminal to 1
+    image[0][x - bbptr->xmin][y - bbptr->ymin][0] = 1.0f; // set pixel at position of source terminal to 1
 
     // process sinks
     for(auto pin_id : cluster_ctx.clb_nlist.net_sinks(net_id)) {
@@ -275,8 +292,25 @@ float CNN::preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned lon
         x= place_ctx.block_locs[bnum].x + cluster_ctx.clb_nlist.block_type(bnum)->pin_width_offset[pnum];
         y= place_ctx.block_locs[bnum].y + cluster_ctx.clb_nlist.block_type(bnum)->pin_height_offset[pnum];
 
-        image[0][x - bbptr->xmin][y - bbptr->ymin][0] = 1; // set pixel at position of current sink terminal to 1
+        image[0][x - bbptr->xmin][y - bbptr->ymin][0] = 1.0f; // set pixel at position of current sink terminal to 1
     }
+
+//    if(counter > 186410) {
+//        printf("\n");
+//        printf("\n");
+        for (int i = 0; i < CNN_INPUT_GRID_SIZE; i++) {
+            for (int j = 0; j < CNN_INPUT_GRID_SIZE; j++) {
+//                printf("%.0f ", image[0][i][j][0]);
+                counter++;
+            }
+//            printf("\n");
+        }
+//        printf("\n");
+//        printf("\n");
+//    }
+
+//    if(counter > 186410)
+//        printf("filled image: %d\n", counter); // TODO
 
     //call predict method
     return encode_and_predict(((void*) image), number_of_terminals);
@@ -289,17 +323,20 @@ float CNN::encode_and_predict(void* mapped_input, unsigned long terminal_count) 
 #if DEBUG_NN
     for(int i = 0; i < CNN_INPUT_GRID_SIZE; i++){
         for(int j = 0; j < CNN_INPUT_GRID_SIZE; j++) {
-            printf("%d ", ((uint8_t (*)[CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1]) mapped_input)[0][i][j][0]);
+            printf("%.0f ", ((float (*)[CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1]) mapped_input)[0][i][j][0]);
         }
         printf("\n");
     }
 #endif
 
-    int ndata = sizeof(uint8_t)*CNN_INPUT_GRID_SIZE*CNN_INPUT_GRID_SIZE;  //total size of data
+    int ndata = sizeof(float)*CNN_INPUT_GRID_SIZE*CNN_INPUT_GRID_SIZE;  //total size of data
 
     TF_Tensor *float_tensor = TF_NewTensor(TF_FLOAT, dims, ndims,
-            ((uint8_t (*)[CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1]) mapped_input), ndata, &NoOpDeallocator,
+            ((float (*)[CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1]) mapped_input), ndata, &NoOpDeallocator,
             0);
+
+//    if(counter > 186410)
+//        printf("created tensor: %d\n", counter); // TODO
 
 #if DEBUG_NN
     if (float_tensor != nullptr)
@@ -310,5 +347,12 @@ float CNN::encode_and_predict(void* mapped_input, unsigned long terminal_count) 
 
     InputValues[0] = float_tensor;
 
-    return predict(InputValues);
+    float raw_prediction = predict();
+
+    TF_DeleteTensor(float_tensor); // TODO
+
+//    if(counter > 186410)
+//        printf("predicted successfully: %d\n", counter); // TODO
+
+    return raw_prediction;
 }
