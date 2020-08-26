@@ -64,7 +64,7 @@ def train_model(model: tf.keras.Model, basepath: str) -> tf.keras.Model:
     tensorboard_cb = tf.keras.callbacks.TensorBoard(run_logdir, histogram_freq=1)
 
     # define early stopping and checkpointing callbacks
-    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=4)
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=early_stopping_patience)
     checkpoint_filepath = os.path.abspath(os.path.join(basepath, 'best_model.h5'))
     mc = tf.keras.callbacks.ModelCheckpoint(
         checkpoint_filepath,
