@@ -7,11 +7,11 @@
 
 \section{Evaluation Scenario}
 
-\subsection{Selected Benchmarks}
+\subsection{Selected Benchmarks}\label{ch:benchmarks}
 
 For the final evaluation we select three circuits from the \gls{VPR} benchmark suite that we did not use in any prior part of this project. We select the circuits quasi-randomly, but ensuring that at least each one \textit{big} and one \textit{small} circuit is chosen.
 
-In the same manner we also select an equally sized \textit{evaluation} set of circuits, which we will need for our chosen method of model selection, detailed in \ref{ch:model-selection}.
+In the same manner we also select an \textit{evaluation} set of two circuits, which we will need for our chosen method of model selection, detailed in \ref{ch:model-selection}.
 
 As the \gls{VPR} Placement algorithm is a pseudo-randomized heuristic not guarantee to yield reproducible results (when starting from a different state), each evaluation on each of this circuits will be averaged over 3\cite{TODO} redundant placing attempts to ensure robust results.
 
@@ -20,37 +20,82 @@ As the \gls{VPR} Placement algorithm is a pseudo-randomized heuristic not guaran
 Our metric of choice is runtime/quality trade-off, specifically discretely sampled result quality (score for the placed and routed circuit computed by \gls{VPR}) for certain approximate absolute placement run-times. These run-times, or sampling points, are selected per benchmark circuit relative to the runtime of the unchanged \gls{VPR} Placer (t\textsubscript{p}) as:
 
 \begin{itemize}
-	\item 0.1 * t\textsubscript{p}, or \textit{fast-mode}
 	\item 1   * t\textsubscript{p}, or \textit{normal-mode}
 	\item 10  * t\textsubscript{p}, or \textit{slow-mode}
+	\item 100  * t\textsubscript{p}, or \textit{very-slow-mode}
 	\item \cite{TODO} values might change when eval. is performed
 \end{itemize}
 
-The actual run-time, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{steps\_per\_temperature}\cite{TODO} setting of \gls{VPR}. By placing a benchmark circuit using the default setting of \cite{TODO}, we acquire the run-time at this setting. 
+The actual run-time, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{steps\_per\_temperature}\cite{TODO} setting of \gls{VPR}. 
 
 Based on observations we state without formal proof that most of the computations of the \gls{VPR} Placer are performed inside each of these steps. Furthermore, while steps perform random actions and can have vastly differing run-time, within a certain \textit{temperature level} steps with different run-times are distributed randomly, and the number of steps per temperature is generally high. Therefore, changing this number of steps will not change the distribution of step run-times within a certain temperature-level, which means their average run-time remains approximately the same. Therefore, changes to the \textit{steps\_per\_temperature} parameter affect the total runtime of the \gls{VPR} Placer approximately linearly.
 
-Now we can scale \textit{steps\_per\_temperature} appropriately and gain quality scores for each sampling point.
+By placing a benchmark circuit using a fixed setting for \textit{inner\_num}, we acquire the runtime at this setting. As early experiments showed that the runtime of the \gls{VPR} Placer using \glspl{NN} is one to two orders of magnitude slower than using \gls{HPWL}, this value is set to $0.01*num_blocks^(4/3)$, which equals one hundredth of the default value of the \gls{VPR} Placer. Therefore, this first check is estimated to take approximately as much time as the unchanged \gls{VPR} in \textit{normal-mode}.
+
+Now, \textit{inner\_num} can be scaled appropriately to gain quality scores at each sampling point.
+
+Evaluating the performance of a certain \gls{NN} during model selection consists of the following steps:
+
+\begin{itemize}
+	\item integration into \gls{VPR}
+	\item determining the runtime over \textit{inner\_num}
+	\item setting \textit{inner\_num} appropriately for \textit{slow-mode}
+	\item placing the evaluation circuit three times
+	\item routing each placement and logging average quality 
+\end{itemize}
+
+The final evaluation of the best \gls{CNN} and \gls{RNN} against unchanged \gls{VPR} is performed as follows:
+
+\begin{itemize}
+	\item integration into \gls{VPR}
+	\item determining the runtime over \textit{inner\_num}
+	\item setting \textit{inner\_num} appropriately for \textit{normal-mode}
+	\item placing the test circuits three times
+	\item routing each placement and logging average quality per circuit
+	\item repeating for \textit{slow-mode} and \textit{very-slow-mode}
+\end{itemize}
+
+The thus computed quality/runtime trade-off is then compared with that of the unchanged \gls{VPR} Placer.
 
 \section{Model Selection}\label{ch:model-selection}
 
+Although \glspl{NN} automatically tune their parameters to fit the target function, the structure and properties of the network itself has to be specified explicitly. While recent works try to automate even this, it is usually still necessary to manually design networks to achieve good results.
+
+During model selection, \glspl{CNN} and \glspl{RNN} are evaluated independently from each other and using the same methodology. This yields a best \gls{CNN} and a best \gls{RNN}, which will both again be integrated into \gls{VPR} and evaluated against the unchanged Placer.  
+
 \subsection{Empirical Model Search}
 
-experimented until "working training" observed, then tried to minimize model complexity to minimize runtime (empirically). 
+Typically, a first working design is found empirically through experimentation, based largely on best practices, related works, and intuition.\cite{TODO} In our case, the strict requirements on the runtime of the networks restricted the search space considerably, and the model candidates described in \ref{ch:cnn-design} and \ref{ch:rnn-design} represent the obvious choices for small and simple networks.
 
-then define HPO parameters and domains, then HPO itself.
+From these candidates the best one is selected by evaluating each independently on evaluation data different from the training and the final test data and comparing the results.
 
 \subsection{\gls{HPO}}
 
-select best model by actual quality on the eval set. don't select by NN loss metric (mse), as this does not respect run-time differences. instead integrate each possible model into vpr, eval run-time, adjust run-time (only within HPO set, not across lstm/cnn), place eval circuit, route it and use reported routing quality as score
+As these groups of candidates are generated from discrete parameters, e.g. dense layer count, this model selection approach constitutes a grid search over these hyperparameters.
+
+\subsubsection{Grid Search}
+
+\cite{TODO} results of grid search
+
+\subsubsection{More Hyperparameters}
+
+For the best network configuration we review our initial empirical choice of optimizer, learning rate and layer activation functions in the same manner. However, in order to reduce complexity, these hyperparameters are treated as independent from each other.
+
+\cite{TODO-results}
+
+\cite{TODO-final-configurations}
 
 \section{Results}
 
+With a single network per type the modification of \gls{VPR} by integrating \glspl{NN} can now be evaluated against the unchanged Placer (reference system).
+
+First, we present the performance of the reference system on our selected benchmarking test set. We then proceed by performing the same evaluation for our modified versions of the \gls{VPR} Placer, using \glspl{CNN} and\glspl{RNN}, respectively. A comprehensive comparison will answer the main question of this thesis, whether \gls{VPR} can be improved by replacing the crude \gls{HPWL} metric with more accurate, but also more expensive \glspl{NN}. Finally, we discuss our results and try to explain the observed behaviour.
+
 \subsection{Reference System (Unchanged \gls{VPR})}
 
-\subsection{\gls{LSTM} Integration}
-
 \subsection{\gls{CNN} Integration}
+
+\subsection{\gls{RNN} Integration}
 
 \subsection{Comparison}
 

@@ -47,9 +47,9 @@ The loading of samples is done using a simple state machine looping over the lin
 
 TODO figures...
 
-This imbalance causes our predictors \cite{TODO only lstms} to focus on correctly predicting the cost of net placements with a low terminal count, while neglecting samples with higher counts. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, placing nets with many terminals optimally is important, as these, although being rare, consume many more routing resources than simple nets.
+This imbalance causes our \glspl{RNN}\cite{TODO only lstms} to focus on correctly predicting the cost of net placements with a low terminal count, while neglecting samples with higher counts. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, placing nets with many terminals optimally is important, as these, although being rare, consume many more routing resources than simple nets.
 
-To that end, we limit the samples per distinct terminal count to a fixed maximum. We set this limit to 4000, which was chosen empirically to be both low enough to sufficiently balance the data, and high enough not to waste samples unnecessarily.
+To that end, we limit the samples per distinct terminal count to a fixed maximum. This limit is set to 4000, which was chosen empirically to be both low enough to sufficiently balance the data, and high enough not to waste samples unnecessarily.
 
 \section{Neural Networks}
 
@@ -71,23 +71,35 @@ First, we subtract the lower-left corner of their \gls{BB}, which is known from 
 
 We then prepare a black image (filled with 0-valued pixels) with a fixed size of 64x64px\cite{TODO}. Now, we set the value of the pixels at those coordinates to 1. This results in a binary-valued image, the lower-left corner of which directly maps to the \gls{BB} of the net placement, where all terminals which have to be connected are represented by pixels with a value of 1.
 
-This scheme is only applicable for net placements with \glspl{BB} of no more than that size. However, we selected the size large enough so that all net placements occurring during the placement of the tested benchmarking circuits fit inside this limit. Indeed, the maximum \gls{BB} side length logged during training data generation is 54 units, therefore 64 units provides a certain upward margin for robustness. In the modified \gls{VPR} Placer, this limit is checked at runtime, and exceeding placements are handled by falling back to the original \gls{HPWL} computation.
+This scheme is only applicable for net placements with \glspl{BB} of no more than that size. However, this size was selected large enough so that all net placements occurring during the placement of the tested benchmarking circuits fit inside this limit. Indeed, the maximum \gls{BB} side length logged during training data generation is 54 units, therefore 64 units provides a certain upward margin for robustness. In the modified \gls{VPR} Placer, this limit is checked at runtime, and exceeding placements are handled by falling back to the original \gls{HPWL} computation.
 
 By mapping coordinate values to pixel values, the sample inputs are automatically scaled to the range [0,1], making them appropriate for processing with \glspl{NN}.
 
 The target value for each sample is the unscaled Maze-Router wiring cost, as this saves the effort of post-processing the output in the runtime-critical integration into \gls{VPR}.\cite{TODO}
 
-\subsubsection{Structure}
+\subsubsection{Structure}\label{ch:cnn-design}
+
+To keep runtime small, the structure of our \glspl{CNN} is kept simple, with only few and small layers.
+
+The general \gls{CNN} design, as illustrated in \ref{fig:cnn-structure-abstract}, consists of zero to two convolutional layers, followed by one to two dense layers. as the last layer, however, is always a dense layer with a single neuron, to achieve regression of one target variable, this leaves one to three custom layers. 
+
+The special case of zero convolutional layers reduces the network to a plain artificial \gls{NN}, consisting only of dense layers. As these network variants, however, use the same encoding, and thus the same pre- and post-processing, they are treated the same as the remaining \glspl{CNN}. We not that this does, however, affect the integration of the \glspl{NN} into \gls{VPR}, as the entry point definition for the \gls{tf} API is dependent on the type of the input layer.
+
+The neuron counts per dense layer are structured by two patterns, either with counts increasing to 16 neurons for the last hidden layer, or decreasing to 4.
+
+The filter size of the convolutional layers can be 3x3 or 7x7, but is constant within all convolutional layers of a specific network.
 
 \subsubsection{Training}
 
 For this network, we use the standard training loop by calling the \textit{fit(...)} method of the \gls{tf} model, specifying training and validation data as well as number of epochs and batch size.
 
-However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples (>1.000.000), it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
+However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples (>1.000.000)\cite{TODO}, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
 
 This generator, which is a slightly adapted version of the one used in a public project by \cite{TODO}, pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
 
 The performance is logged using TensorBoard\cite{TODO}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{TODO}, ready to be deployed to our adapted version of \gls{VPR}.
+
+Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model.
 
 \subsection{\gls{RNN}}
 
@@ -101,7 +113,11 @@ In the Maze-Router, all distances are computed using the Manhattan metric, and t
 
 As the scaling factor itself is not part of the input to the \gls{RNN}, it can only learn to predict the result of the scaled problem. Therefore, we need to post process the predicted output in our adapted \gls{VPR} implementation by rescaling it to the original magnitude using the inverse of the scaling factor of the inputs.
 
-\subsubsection{Structure}
+\subsubsection{Structure}\label{ch:rnn-design}
+
+Similarly to the \gls{CNN} structure, our \glspl{RNN} are composed of \gls{LSTM} layers followed by dense layers (see \ref{fig:rnn-structure-abstract}). However, each \gls{RNN} has to contain at least one \gls{LSTM} layer, as the last \gls{LSTM} layer encodes the variable length sequences into fixed size tensors that can be processed by the following dense layers.
+
+Thus, one to three \gls{LSTM} layers are followed by one or two dense layers, the last dense layer again being the fixed one-neuron output layer. Here, the neuron count is specified for both dense and \gls{LSTM} layers. The three patterns \textit{increasing}, \textit{decreasing}, and \textit{bloating} control the distribution of neurons over the layers, de- or increasing in steps of 4. \textit{Bloating} describes an increasing count within the \gls{LSTM} part of the network, and decreasing in the following dense layers.
 
 \subsubsection{Training}
 
@@ -121,7 +137,7 @@ To ensure a randomized order while training, we shuffle the batches both externa
 
 Due to the custom training loop, the training of our \gls{RNN} model is not supported for supervision using TensorBoard. Therefore, we implemented simple logging and visualization to help in debugging and model selection.
 
-Like our \gls{CNN}, the trained model is saved and can be deployed analogously.
+Like our \gls{CNN}, the trained model is saved and can be deployed analogously. However, due to the custom training loop, early stopping and checkpointing are implemented explicitly, as the predefined callbacks can not be used in this scenario.
 
 \section{Integration}
 
