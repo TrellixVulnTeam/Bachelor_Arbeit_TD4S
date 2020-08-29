@@ -5,9 +5,17 @@
 %************************************************
 \glsresetall % Resets all acronyms to not used
 
+Adding \glspl{NN} to \gls{VPR} consists of two parts: Designing and training the \glspl{NN}, and modifying the \gls{VPR} Placer to call them instead of the usual \gls{HPWL} routine.
+
 \section{Problem Definition}
 
-TODO
+The problem to be solved with \glspl{NN}, that \gls{VPR} usually solves with \gls{HPWL}, is wirelength estimation.
+
+The input is the temporary placement of a net, encoded as a list of 2D grid coordinates, with arbitrary length, but at least two entries. Each 2D coordinate is a pair of non-negative integers denoting the X and Y position of the terminal in the grid. 
+
+The first element of the list specifies the position of a signal source, followed by the positions of all sinks connected to this source in the order in which they are stored in \gls{VPR}.
+
+The output is the wiring cost for wiring this net in isolation using the Maze-Router. This is the minimum wire length achievable when greedily routing one terminal at a time in fixed order.
 
 \section{Neural Networks}
 
