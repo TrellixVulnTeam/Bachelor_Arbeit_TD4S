@@ -121,10 +121,10 @@ They are expected to produce vastly more accurate estimations than the \gls{HPWL
 
 \subsubsection{Target Function}
 
-In order to be able to train a \gls{NN} using supervised learning, we need training examples consisting of sample inputs and their expected prediction value, in our case terminal coordinates and the minimum wiring cost.
+Training a \gls{NN} using supervised learning requires training examples consisting of sample inputs and their expected prediction value, in our case terminal coordinates and the minimum wiring cost.
 
-However, we currently have two competing candidates for the minimum wiring cost of a net placement: The \gls{RSMT}, specifying the minimum possible wiring cost, and the length of the wiring tree computed by the Maze-Router algorithm\cite{Maze-Router}, specifying the minimum wiring cost achievable by the \gls{VPR} Router, which might be higher than the \gls{RSMT} cost.
+However, there are two competing candidates for the minimum wiring cost of a net placement: The \gls{RSMT}, specifying the minimum possible wiring cost, and the length of the wiring tree computed by the Maze-Router algorithm\cite{Maze-Router}, specifying the minimum wiring cost achievable by the \gls{VPR} Router, which might be higher than the \gls{RSMT} cost.
 
-As our goal is to achieve optimal final results for the placed and routed circuit, we have to optimize the Placer to produce outputs optimal for the Router used, so it can then route the circuit as efficiently as it is able to. Therefore, we decided to use the cost computed using the Maze-Algorithm, optimizing the placement for the routing algorithm present, not for a hypothetical ideal one.
+As our goal is to achieve optimal final results for the placed and routed circuit, we have to optimize the Placer to produce outputs optimal for the Router used, so the circuits can be routed efficiently. Therefore, we decided to use the cost computed using the Maze-Router algorithm, optimizing the placement for the routing algorithm present, not for a hypothetical ideal one.
 
 \subsubsection{Related Work}
