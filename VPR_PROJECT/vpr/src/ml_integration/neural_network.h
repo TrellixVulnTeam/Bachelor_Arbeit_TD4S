@@ -44,8 +44,8 @@
 #include "place_delay_model.h"
 
 #define CNN_INPUT_GRID_SIZE 64
-#define LSTM_ENTRY_POINT "serving_default_lstm_2_input"
-#define CNN_ENTRY_POINT "serving_default_flatten_8_input" // "serving_default_conv2d_2_input"
+#define LSTM_ENTRY_POINT "serving_default_lstm_renamed_input"
+#define CNN_ENTRY_POINT "serving_default_flatten_8_input"
 
 
 class TfModelInterface {
@@ -97,8 +97,6 @@ protected:
     /// reusable tensor for the NN to temporarily store its input in
     TF_Tensor **InputValues;
 
-    int counter; // TODO
-
 private:
 
     /// tensorflow session object representing a loadad NN
@@ -135,6 +133,7 @@ protected:
 class CNN: public TfModelInterface {
 public:
     CNN();
+    ~CNN();
 #if DEBUG_NN
     float debug() override;
 #endif
@@ -142,6 +141,7 @@ protected:
     float preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned long number_of_terminals,
                                  const ClusteringContext& cluster_ctx) override;
     float encode_and_predict(void* mapped_input, unsigned long  terminal_count) override;
+    float (*image_buffer)[CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1];
 };
 
 

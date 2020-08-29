@@ -607,9 +607,6 @@
 			<Option target="vpr"/>
 			<Option target="libvpr"/>
 		</Unit>
-		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/ml_integration/neuronal_network.h">
-			<Option target="libvpr"/>
-		</Unit>
 		<Unit filename="/cygdrive/c/Users/01100/Desktop/Bachelor_Arbeit/VPR_PROJECT/vpr/src/pack/cluster.cpp">
 			<Option target="libvpr"/>
 		</Unit>
