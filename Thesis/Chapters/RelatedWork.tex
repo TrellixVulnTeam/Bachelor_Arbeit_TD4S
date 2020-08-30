@@ -79,6 +79,20 @@ The reason such a simple and possibly inaccurate estimator was chosen is its eff
 
 \subsubsection{Other Common Heuristics}
 
+\begin{figure}
+	\includegraphics[width=\textwidth]{plots/wirelength-estimation-models.png}
+	\caption{Popular wirelength estimation models. (source: \cite{star-plus-paper})}
+	\label{fig:wirelength-estimation-models}
+\end{figure}
+
+Other popular approaches for in-placement wirelength estimation are the popular star+ model, the clique model, \glspl{RMST}, and \glspl{RSMT}.\cite{star-plus-paper}
+
+While \gls{RSMT} provides the exact minimum possible wirelength, it is a np-hard problem and thus unsuited for in-placement estimation of iterative placers. \gls{RMST} is considerably faster than \gls{RSMT} and overestimates by 50\% at most\cite{rmst-quality}, it still exhibits a high complexity.
+
+The clique model is in quality roughly equivalent as \gls{HPWL}\cite{star-plus-paper}, while being more complex and therefore inferior.
+
+The star+ model on the other hand can be computed in constant time like \gls{HPWL}, but outperforms it measurably. This model estimates the wirelength of a net as the sum of distances from each terminal to the geometric centre of the net. It therefore processes more information than the simple \gls{HPWL} model, while still enabling a highly efficient computation.\cite{star-plus-paper}
+
 \section{Neural Networks}
 
 Neural Networks are universal function approximators based on a network of linear combinations followed by non-linear activation functions. They are a group of \gls{ML} algorithms learning their target function by initially making random predictions and improving through the observed error or effect of their predictions.
@@ -128,3 +142,11 @@ However, there are two competing candidates for the minimum wiring cost of a net
 As our goal is to achieve optimal final results for the placed and routed circuit, we have to optimize the Placer to produce outputs optimal for the Router used, so the circuits can be routed efficiently. Therefore, we decided to use the cost computed using the Maze-Router algorithm, optimizing the placement for the routing algorithm present, not for a hypothetical ideal one.
 
 \subsubsection{Related Work}
+
+The deployment of \gls{ML} to \gls{FPGA} hardware synthesis is still rare\cite{routability-estimator}, and we identified only few publications closely related to our work. 
+
+While there is one paper seemingly covering the same topic as our work, it is hidden behind a paywall, and the accessible abstract does not disclose much useful information.\cite{doi:10.1142/S0218213098000202}
+
+In "Neural network based pre-placement wirelength estimation"\cite{pre-placement-estimation}, Liu et al. deploy \glspl{NN} to estimate wirelengths, however not on individual temporary net placements, but on whole circuits definitions.
+
+Although not related to \glspl{NN}, the contents of the star+ paper incidentally exhibit strong parallels to our work. The authors also develop a in-placement wirelength estimator and evaluate it by implementing it into the \gls{VPR} Placer. The evaluation process deployed by Xu et al. is similar to our own in many aspects, but also contains important differences, as detailed in \ref{ch:evaluation}.

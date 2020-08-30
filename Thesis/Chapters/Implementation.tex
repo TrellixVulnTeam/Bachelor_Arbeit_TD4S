@@ -55,7 +55,29 @@ The loading of samples is done using a simple state machine looping over the lin
 
 \subsubsection{Balancing Terminal Counts}
 
-TODO figures...
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.45\linewidth}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+		\end{subfigure}
+		\caption{without balancing}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+		\end{subfigure}
+		\caption{with balancing}
+	\end{subfigure}
+	\caption{Distribution of training data samples over terminal counts.}
+	\label{fig:data-hist}
+\end{figure}
 
 As can be seen in \ref{fig:data-hist}, the distribution of logged training samples over the net terminal counts is not only highly sparse, but also contains very high counts at certain positions.
 
@@ -81,7 +103,13 @@ The defining feature of \glspl{CNN} are their convolutional layers, mainly defin
 
 \subsubsection{Input Format}
 
-For our \glspl{CNN} the input coordinates have to be mapped to such an image. This is illustrated in \ref{fig:cnn-input-format}.
+\begin{figure}
+	\includegraphics[width=\linewidth]{plots/cnn-encoding.png}
+	\caption{Visualisation of net placement encoding procedure for \glspl{CNN}.}
+	\label{fig:cnn-encoding}
+\end{figure}
+
+For our \glspl{CNN} the input coordinates have to be mapped to such an image. This is illustrated in \ref{fig:cnn-encoding}.
 
 First, the lower-left corner of their \gls{BB} is subtracted, which is known from the remaining part of the \gls{HPWL} implementation. This helps to reduce the maximum occurring coordinates.
 
@@ -95,9 +123,27 @@ The target value for each sample is the unscaled Maze-Router wiring cost, as thi
 
 \subsubsection{Structure}\label{ch:cnn-design}
 
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.3\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-candidates-2-conv.png}
+		\caption{2 conv layers}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-candidates-1-conv.png}
+		\caption{1 conv layer}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-candidates-0-conv.png}
+		\caption{0 conv layers}
+	\end{subfigure}
+	\caption{Graph structures of \gls{CNN} candidates.}
+	\label{fig:cnn-structure-abstract}
+\end{figure}
+
 To keep runtime small, the structure of our \glspl{CNN} is kept simple, with only few and small layers.
 
-The general \gls{CNN} design, as illustrated in \ref{fig:cnn-structure-abstract}, consists of zero to two convolutional layers, followed by a flatten and one to two dense layers. As the last layer, however, is always a dense layer with a single neuron, to achieve regression of one target variable, and the flatten layer is parameter-less, this leaves one to three custom layers. 
+Our general \gls{CNN} design, as illustrated in \ref{fig:cnn-structure-abstract}, consists of zero to two convolutional layers, followed by a flatten and one to two dense layers. As the last layer, however, is always a dense layer with a single neuron, to achieve regression of one target variable, and the flatten layer is parameter-less, this leaves one to three custom layers. 
 
 The special case of zero convolutional layers reduces the network to a plain artificial \gls{NN}, consisting only of dense layers and one flatten layer, which does not perform any computation but only reshapes the input. As these network variants, however, use the same encoding, and thus the same pre- and post-processing, they are treated the same as the remaining \glspl{CNN}. We note that this does, however, affect the integration of the \glspl{NN} into \gls{VPR}, as the entry point definition for the \gls{tf} API is dependent on the type of the input layer.\cite{TODO-changed}
 
@@ -106,6 +152,24 @@ The neuron counts per dense layer are structured by two patterns, either with co
 The filter size of the convolutional layers can be 3x3 or 7x7, but is constant within all convolutional layers of a specific network.
 
 \subsubsection{Training}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.3\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-training-history-2_conv_layers_deflating_kernel_size_7.png}
+		\caption{2 conv layers}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-training-history-1_conv_layers_deflating_kernel_size_7.png}
+		\caption{1 conv layer}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-training-history-0_conv_layers_deflating_kernel_size_-1.png}
+		\caption{0 conv layers}
+	\end{subfigure}
+	\caption{Exemplary training histories (training (red) and evaluation (blue) error over epochs) of \gls{CNN} candidates with different complexity.}
+	\label{fig:cnn-train}
+\end{figure}
 
 For this network, we use the standard training loop by calling the \textit{fit(...)} method of the \gls{tf} model, specifying training and validation data as well as number of epochs and batch size.
 
@@ -117,7 +181,7 @@ Furthermore, in order to keep the effort of training all \gls{CNN} candidates ma
 
 The performance is logged using TensorBoard\cite{TODO}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{TODO}, ready to be deployed to our adapted version of \gls{VPR}.
 
-Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model (refer \ref{fig:cnn-train}).
+Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model. Indeed, our \gls{CNN} models tend to overfit quickly, depending on the model complexity (see \ref{fig:cnn-train}). 
 
 \subsection{\gls{RNN}}
 
@@ -125,7 +189,13 @@ Early stopping, with a patience of 4, and checkpointing are deployed to automati
 
 \subsubsection{Input Format}
 
-As the \gls{RNN} accepts sequences of variable length as input data, we encode the terminal positions as a ordered list of coordinate pairs.
+\begin{figure}
+	\includegraphics[width=\linewidth]{plots/rnn-encoding.png}
+	\caption{Visualisation of net placement encoding procedure for \glspl{RNN}.}
+	\label{fig:rnn-encoding}
+\end{figure}
+
+As the \gls{RNN} accepts sequences of variable length as input data, we encode the terminal positions as a ordered list of coordinate pairs, as shown in \ref{fig:rnn-encoding}.
 
 To support efficient training we scale our training data. As the distribution of the terminals inside their \gls{BB} is approximately uniform (based on the properties of the simulated annealing placer), we normalize the coordinates to the range [0,1] by dividing by the maximum of their \glspl{BB}' X and Y dimensions. 
 
@@ -135,11 +205,62 @@ As the scaling factor itself is not part of the input to the \gls{RNN}, it can o
 
 \subsubsection{Structure}\label{ch:rnn-design}
 
+
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.3\linewidth}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+		\end{subfigure}
+		\caption{3 lstm layers}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+		\end{subfigure}
+		\caption{2 lstm layers}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+		\end{subfigure}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+		\end{subfigure}
+		\caption{1 lstm layer}
+	\end{subfigure}
+	\caption{Graph structures of \gls{RNN} candidates (TODO placeholders...).}
+	\label{fig:rnn-structure-abstract}
+\end{figure}
+
 Similarly to the \gls{CNN} structure, our \glspl{RNN} are composed of \gls{LSTM} layers followed by dense layers (see \ref{fig:rnn-structure-abstract}). However, each \gls{RNN} has to contain at least one \gls{LSTM} layer, as the last \gls{LSTM} layer encodes the variable length sequences into fixed size tensors that can be processed by the following dense layers.
 
 Thus, one to three \gls{LSTM} layers are followed by one or two dense layers, the last dense layer again being the fixed one-neuron output layer. Here, the neuron count is specified for both dense and \gls{LSTM} layers. The three patterns \textit{increasing}, \textit{decreasing}, and \textit{bloating} control the distribution of neurons over the layers, de- or increasing in steps of 4. \textit{Bloating} describes an increasing count within the \gls{LSTM} part of the network, and decreasing in the following dense layers.
 
 \subsubsection{Training}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/rnn-training-history-3_lstm_layers_2_dense_layers_inflating.png}
+		\caption{3 lstm layers, 2 dense layers}
+		\label{fig:rnn-training-overfit}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/rnn-training-history-1_lstm_layers_1_dense_layers_inflating.png}
+		\caption{1 lstm layer, 1 dense layer}
+		\label{fig:rnn-training-simple}
+	\end{subfigure}
+	\caption{Exemplary training histories of \gls{RNN} candidates with different complexity.}
+	\label{fig:rnn-training}
+\end{figure}
 
 Although \glspl{RNN} generally support variable length input sequences, the implementation behind \gls{tf} imposes a limit on this: Input sequences within the same batch of samples are required to have uniform sequence length.
 

@@ -61,7 +61,7 @@ The final evaluation of the best \gls{CNN} and \gls{RNN} against unchanged \gls{
 
 The thus computed quality/runtime trade-off is then compared with that of the unchanged \gls{VPR} Placer.
 
-As the \gls{VPR} Router primarily optimizes the \textit{channel width}, or maximum number of parallel routing channels used by the routing, by determining the minimum routable value via binary search, we select \textit{channel width} as the primary evaluation metric. In the final evaluation we will, however, also compare critical path lengths, as this, as \gls{VPR}'s secondary optimization target, defines the maximum operateable frequency of the circuit, directly influencing its computational capabilities.
+The \gls{VPR} Router primarily optimizes the \textit{channel width}, or maximum number of parallel routing channels used by the routing, by determining the minimum routable value via binary search. Therefore we select \textit{channel width} as the primary evaluation metric. In the final evaluation we will, however, also compare critical path lengths, as this, as \gls{VPR}'s secondary optimization target, defines the maximum operateable frequency of the circuit, directly influencing its computational capabilities.
 
 \section{Model Selection}\label{ch:model-selection}
 
@@ -77,13 +77,66 @@ From these candidates, the best one is selected by evaluating each independently
 
 \subsection{\gls{HPO}}
 
-As these groups of candidates are generated from discrete parameters, e.g. dense layer count, this model selection approach constitutes a grid search over these hyperparameters.
+\begin{figure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-hyperopt-chan-width.png}
+		\caption{\glspl{CNN} - channel width}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/rnn-hyperopt-chan-width.png}
+		\caption{\glspl{RNN} - channel width}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/cnn-hyperopt-critical-path.png}
+		\caption{\glspl{CNN} - critical path length}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/rnn-hyperopt-critical-path.png}
+		\caption{\glspl{RNN} - critical path length}
+	\end{subfigure}
+	\caption{Achieved performance over model configurations.}
+	\label{fig:eval-hyperopt-surface}
+\end{figure}
 
-\cite{TODO} results of grid search
+\begin{tabular}{lrrrrrrrrrr}
+	\toprule
+	conv\_layer\_count & \multicolumn{2}{l}{0} & \multicolumn{4}{l}{1} & \multicolumn{4}{l}{2} \\
+	structure &  def &  inf & \multicolumn{2}{l}{def} & \multicolumn{2}{l}{inf} & \multicolumn{2}{l}{def} & \multicolumn{2}{l}{inf} \\
+	kernel\_size &         -1 &         -1 &          3 &          7 &          3 &          7 &          3 &          7 &         3 &          7 \\
+	\midrule
+	channel\_width    &  11.0 &  10.3 &  19.4 &  17.9 &  19.2 &  19.5 &  19.6 &  18.3 &  19.6 &  20.1 \\
+	critical\_path\_ns &  43.1 &  44.5 &  42.9 &  42.4 &  44.3 &  42.2 &  43.3 &  44.3 &  44.4 &  42.7 \\
+	\bottomrule
+	\label{TODO bad values}
+	\label{table:cnn-hyperopt-results}
+\end{tabular}
+
+\begin{figure}
+\begin{subfigure}[b]{0.45\linewidth}
+	\includegraphics[width=\linewidth]{plots/cnn-hyperopt-chan-width-with-reference.png}
+	\caption{\glspl{CNN} - channel width}
+\end{subfigure}
+\begin{subfigure}[b]{0.45\linewidth}
+	\includegraphics[width=\linewidth]{plots/rnn-hyperopt-chan-width-with-reference.png}
+	\caption{\glspl{RNN} - channel width}
+\end{subfigure}
+\begin{subfigure}[b]{0.45\linewidth}
+	\includegraphics[width=\linewidth]{plots/cnn-hyperopt-critical-path-with-reference.png}
+	\caption{\glspl{CNN} - critical path length}
+\end{subfigure}
+\begin{subfigure}[b]{0.45\linewidth}
+	\includegraphics[width=\linewidth]{plots/rnn-hyperopt-critical-path-with-reference.png}
+	\caption{\glspl{RNN} - critical path length}
+\end{subfigure}
+\caption{Achieved performance over model configurations with performance of reference system.}
+\label{fig:eval-hyperopt-surface-reference}
+\end{figure}
+
+As these groups of candidates are generated from discrete parameters, e.g. dense layer count, this model selection approach constitutes a grid search over these hyperparameters.
 
 By evaluating the \gls{NN} candidates on the evaluation set at the \textit{slow-mode} sampling point we determine their relative performance. A visualization of the results in \ref{fig:eval-hyperopt-surface} clearly shows a correlation between network complexity and routing quality: Smaller networks produce better results, with the exception of \glspl{CNN} without convolutional layers. These models, using less time for a prediction, allow for a higher number of moves per temperature step, although producing less accurate predictions than their more complex counterparts. The properties of convolutional layers, while computationally being rather expensive (at least compared to the "tiny" dense layers), seem to be beneficial to accurately predict the wiring cost. As the \gls{LSTM} layers of the \glspl{RNN} are required to encode the input data for the following dense layers, their suitedness to the problem can not be measured that easily.
 
-The exact results are presented in \ref{table:rnn-hyperopt-results} and \ref{table:cnn-hyperopt-results}. We thus select \textit{TODO} and \textit{TODO} as the best \gls{CNN} and \gls{RNN} models, respectively.
+The exact results are presented in \ref{table:rnn-hyperopt-results} and \ref{table:cnn-hyperopt-results}. We thus select \textit{1\_conv\_layers\_deflating\_kernel\_size\_7} and \textit{1\_lstm\_layers\_1\_dense\_layers\_inflating} as the best \gls{CNN} and \gls{RNN} models, respectively.
 
 By comparing the performance to that of the unchanged \gls{VPR} Placer we can, however, also see, that none of the \glspl{NN} is able to beat \gls{HPWL} in \textit{slow-mode} (see \ref{fig:eval-hyperopt-surface-reference}).
 
