@@ -1,0 +1,10 @@
+\begin{tabular}{lrrrrrrrrrrrrrrrrrr}
+\toprule
+lstm\_layer\_count & \multicolumn{6}{l}{1} & \multicolumn{6}{l}{2} & \multicolumn{6}{l}{3} \\
+dense\_layer\_count & \multicolumn{3}{l}{1} & \multicolumn{3}{l}{2} & \multicolumn{3}{l}{1} & \multicolumn{3}{l}{2} & \multicolumn{3}{l}{1} & \multicolumn{3}{l}{2} \\
+structure &   bloating &  deflating &  inflating &   bloating &  deflating &  inflating &   bloating &  deflating &  inflating &   bloating &  deflating &  inflating &   bloating &  deflating &  inflating &   bloating &  deflating &  inflating \\
+\midrule
+channel\_width    &  18.940000 &  16.463333 &  19.466667 &  17.413333 &  19.156667 &  20.836667 &  19.620000 &  18.503333 &  17.463333 &  22.186667 &  20.553333 &  21.296667 &  14.413333 &  16.310000 &  17.173333 &  15.966667 &  11.393333 &  14.533333 \\
+critical\_path\_ns &  42.762853 &  44.808227 &  42.466478 &  43.566767 &  42.836098 &  43.649097 &  43.728133 &  44.899985 &  45.156255 &  44.927930 &  44.417133 &  42.799468 &  46.544203 &  46.025668 &  46.404840 &  46.598998 &  47.434022 &  46.731202 \\
+\bottomrule
+\end{tabular}
