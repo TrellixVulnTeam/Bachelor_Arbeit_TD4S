@@ -5,6 +5,16 @@
 %************************************************
 \glsresetall % Resets all acronyms to not used
 
+As this work consists of modifying an existing project, implementation details, like programming language, for part of this work are fixed. It is therefore divided into three largely independent parts:
+
+\begin{itemize}
+	\item obtaining training data
+	\item developing and training the \glspl{NN}
+	\item integrating the \glspl{NN} into \gls{VPR}
+\end{itemize}
+
+Although the \gls{VTR} project is implemented in C++, our \glspl{NN} are implemented and trained in Python for the convenience the various data processing libraries provide, and as our selected \gls{NN} framework, \gls{tf}, is primarily available for Python. The training data generation is implemented in C++ as an extension to the \gls{VPR} Placer. 
+
 \section{Training Data}
 
 For supervised learning algorithms, representative training data is imperative to achieve a good fit of the target function. While it would be possible for our problem to randomly generate synthetic training data, this would generally incur a higher domain gap than real data. One reason for this would be possibly typical distributions of terminals on the grid, or the number of samples for each terminal count. Furthermore, capturing real data is easily possible, and, due to the digital nature of the domain, free of negative capturing effects.
@@ -37,25 +47,29 @@ Before logging a sample, this algorithm is called to obtain the true wiring cost
 
 \subsection{Usage}
 
-To use these samples for training a \gls{NN}, they need to be loaded from disk again. Furthermore, an analysis of the distribution of samples over terminal counts revealed a strong imbalance.
+To use these samples for training a \gls{NN}, they need to be loaded from disk again. Furthermore, an analysis of the distribution of samples over terminal counts revealed an imbalance in their distribution.
 
 \subsubsection{Loading}
 
-The loading of samples is done using a simple state machine looping over the lines of the text files.
+The loading of samples is done using a simple state machine looping over the lines of the text files containing the logged samples.
 
 \subsubsection{Balancing Terminal Counts}
 
 TODO figures...
 
-This imbalance causes our \glspl{RNN}\cite{TODO only lstms} to focus on correctly predicting the cost of net placements with a low terminal count, while neglecting samples with higher counts. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, placing nets with many terminals optimally is also important, as these, although being rare, consume many more routing resources than simple nets.
+As can be seen in \ref{fig:data-hist}, the distribution of logged training samples over the net terminal counts is not only highly sparse, but also contains very high counts at certain positions.
+
+We decided to accept the sparsity, as it would only be avoidable with immense effort, e.g. by logging the placements of enough circuits until all counts are balanced, when using real instead of synthetic data. The \gls{NN} is expected to be able to generalize to unknown terminal counts once it is properly trained.
+
+The imbalance on the other hand initially caused our \glspl{RNN} to notably focus on correctly predicting the cost of net placements with certain terminal counts, while neglecting the remaining samples, thereby overfitting. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, it is highly circuit specific and hinders generalization.
 
 To that end, the samples per distinct terminal count were limited to a fixed maximum. This limit is set to 4000, which was chosen empirically to be both low enough to sufficiently balance the data, and high enough not to waste samples unnecessarily.
 
-The \glspl{CNN}, encoding the data in a fixed size image, are less affected by this and were trained without terminal count balancing.
+Our \glspl{CNN}, encoding the data in a fixed size image irrespective of terminal count, are less affected by this and were therefore trained without terminal count balancing.
 
 \section{Neural Networks}
 
-Although the \gls{VTR} project is implemented in C++, our \glspl{NN} are implemented and trained in Python for the convenience the various data processing libraries provide, and as our selected \gls{NN} framework, \gls{tf}, is primarily available for Python.
+The \glspl{NN} themselves are implemented as \gls{tf} 2.0 Keras models, both defined and trained in a Python project.
 
 \subsection{\gls{tf} Framework}
 
@@ -63,11 +77,11 @@ Although the \gls{VTR} project is implemented in C++, our \glspl{NN} are impleme
 
 \subsection{\gls{CNN}}
 
-
+The defining feature of \glspl{CNN} are their convolutional layers, mainly defined by the number and size of their filters, as well as the stride and input extension. The input is a multidimensional tensor, usually an image with one (greyscale) or three (rgb) channels.
 
 \subsubsection{Input Format}
 
-For our \glspl{CNN} the input coordinates have to be mapped to an image. 
+For our \glspl{CNN} the input coordinates have to be mapped to such an image. This is illustrated in \ref{fig:cnn-input-format}.
 
 First, the lower-left corner of their \gls{BB} is subtracted, which is known from the remaining part of the \gls{HPWL} implementation. This helps to reduce the maximum occurring coordinates.
 
@@ -95,15 +109,19 @@ The filter size of the convolutional layers can be 3x3 or 7x7, but is constant w
 
 For this network, we use the standard training loop by calling the \textit{fit(...)} method of the \gls{tf} model, specifying training and validation data as well as number of epochs and batch size.
 
-However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples (>1.000.000)\cite{TODO}, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
+However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
 
-This generator, which is a slightly adapted version of the one used in a public project by \cite{TODO}, pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
+This generator (a slightly adapted version of the one used in a public project\cite{TODO}) pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
+
+Furthermore, in order to keep the effort of training all \gls{CNN} candidates manageable, the dataset was artificially limited to 200.000 samples.
 
 The performance is logged using TensorBoard\cite{TODO}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{TODO}, ready to be deployed to our adapted version of \gls{VPR}.
 
-Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model.
+Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model (refer \ref{fig:cnn-train}).
 
 \subsection{\gls{RNN}}
+
+\glspl{RNN} are defined by the presence of recurrent layers, which feed some information back to their input, establishing a state in the prediction operation. This state allows them to remember former inputs and thus to process sequences instead of only single tensors. Thus they can process inputs of variable size, typically with one not strictly defined input dimension.
 
 \subsubsection{Input Format}
 
@@ -139,6 +157,10 @@ To ensure a randomized order while training, we shuffle the batches both externa
 
 Due to the custom training loop, the training of our \gls{RNN} model is not supported for supervision using TensorBoard. Therefore, we implemented simple logging and visualization to help in debugging and model selection.
 
+\ref{fig:rnn-training} shows the training histories of two different \glspl{RNN}. While \ref{fig:rnn-training-overfit} reaches higher performance due to a higher number of trainable parameters, it does not converge as smoothly as \ref{fig:rnn-training-simple}, which, due to its simple structure, can only achieve a rough fit. The reason for the sharp spikes in both training and evaluation error can easily be explained by taking a look at \ref{fig:rnn-training-individual}. This shows the individual errors on samples of specific terminal counts. It can be observed that such a sharp drop in performance is usually caused by the model trying to lower the error on samples with high terminal counts, probably by adjusting predictions generally upwards, which causes high error on samples with low terminal counts. In the following epoch the model usually rectifies its mistake.
+
+Another interesting observation is the fact that evaluation error frequently drops below training error, which seems to imply the model is better in predicting on unknown data than it is on known samples. This, however, is due to the way error computation is implemented in the \gls{tf} framework\cite{keras-faq-web}. The training error of an epoch is computed as the mean of the training error on all batches at the point they are used for training. Therefore, the error on the first batches is computed in a different network state than the error on the later batches. As the model usually improves during an epoch, this causes the training error to be higher than expected. Similarly, a decrease in overall performance might appear as overfitting due to validation error rising faster than the training error. The red bar in the \gls{RNN} training history plots shows the expected \textit{reference train error} after the last epoch.
+
 Like our \gls{CNN}, the trained model is saved and can be deployed analogously. However, due to the custom training loop, early stopping and checkpointing are implemented explicitly, as the predefined callbacks can not be used in this scenario.
 
 \section{Integration}
@@ -166,6 +188,6 @@ We specified a compile time variable for four possible modes of operation:
 \begin{itemize}
 	\item unchanged \gls{VPR}
 	\item training data generation, writing all temporary net placements to a text file
-	\item \gls{CNN} integration, replacing \gls{HPWL} with our \gls{CNN} interface for all nets with more than 3 terminals and placements not exceeding the hard limit
 	\item \gls{RNN} integration, replacing \gls{HPWL} with our \gls{RNN} interface for all nets with more than 3 terminals
+	\item \gls{CNN} integration, replacing \gls{HPWL} with our \gls{CNN} interface for all nets with more than 3 terminals and placements not exceeding the hard limit
 \end{itemize}

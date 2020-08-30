@@ -35,7 +35,7 @@ The main advantage of this approach is that every possible input can be converte
 
 The main disadvantages are the memory-inefficient encoding, the loss of ordering information, and the limitation to a maximum grid size.
 
-The encoding is an equivalent of a Bitmap, which is the most inefficient common image encoding in terms of memory requirement, as it contains no compression and has a fixed size given fixed dimensions. It has the minimum size necessary to encode all possible images, or in our case Net placements on the grid, with said dimensions, with no considerations about the probability or meaningfulness of these possibilities.
+The encoding is an equivalent of a Bitmap, which is the most inefficient common image encoding in terms of memory requirement, as it contains no compression and has a fixed size given fixed dimensions.
 
 In order to reduce the memory overhead of this approach we adapt it to relative placement positions inside the bounding box of each Net, instead of absolute positions on the \gls{FPGA} grid. This reduces the memory requirement of each sample from the maximum placement grid size to the maximum bounding box size of all considered Net placements.
 
@@ -43,7 +43,7 @@ Furthermore, the ordering of the terminals inside a Net is lost. While the minim
 
 Our assumption at this point is that the influence of the ordering is small enough, that \glspl{CNN} are still able to perform better than \gls{HPWL} on the accuracy/runtime trade-off.
 
-The advantage of fixed size tensors also brigs with it a disadvantage, namely the limitation to a maximum grid, or rather Net placement bounding box, size. Any fixed size encoding can by design only represent problem instances up to a certain size. Therefore, any instance exceeding this limit can not be processed by the \gls{CNN} with this limitation. Furthermore, as the maximum size (number of grid positions) linearly influences the computational effort for each prediction, it is impractical to simply set the limit so high an excess becomes highly unlikely.
+Finally, this approach is limited to a maximum grid, or rather Net placement bounding box, size. Any fixed size encoding can by design only represent problem instances up to a certain size. Therefore, any instance exceeding this limit can not be processed by our \gls{CNN}. Furthermore, as the maximum size (number of grid positions) linearly influences the computational effort for each prediction, it is impractical to simply set the limit so high an excess becomes highly unlikely.
 
 Therefore, in order to be able to process any valid input, we need a fallback estimator for problem instances exceeding the limit. While an ensemble of \glspl{CNN} with increasing input dimensions could combat the computational effort for prediction, it would require lots of resources for training, and still defines an upper limit that might be exceeded. Thus, we decided to use a single \gls{CNN} able to process all commonly encountered Net placements on the \gls{VPR} benchmarks, and to fall back to \gls{HPWL} for any placement exceeding this limit.
 
