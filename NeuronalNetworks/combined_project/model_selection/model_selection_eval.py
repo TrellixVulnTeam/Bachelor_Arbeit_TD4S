@@ -1,8 +1,5 @@
 from model_selection.util import *
 
-rnn_model_base_path = os.path.abspath(os.path.join(model_base_path, "rnn"))
-cnn_model_base_path = os.path.abspath(os.path.join(model_base_path, "conv"))
-
 
 def time_reference(circuit_path: str, circuit_name: str, target_path: str):
     set_vpr_context("reference")
@@ -23,6 +20,7 @@ def analyze_nns(circuit_path: str, circuit_name: str, type: str):
     print("analyzing {}s...".format(type))
     set_vpr_context(type)
     models = os.listdir(rnn_model_base_path if type == "rnn" else cnn_model_base_path)
+    models = [model for model in models if not "." in model]
     reference_time = runtime_quality_map[("reference", circuit_name)][1]
     for model in models:
         print("analyzing model {}...".format(model))
@@ -33,9 +31,13 @@ def analyze_nns(circuit_path: str, circuit_name: str, type: str):
             type,
             os.path.abspath(os.path.join(current_basepath, "model"))
         )
-        time = time_placement(circuit_path, circuit_name, None, place_only=True, inner_num=initial_inner_num)
-        print("{} took {}s at inner_num {}".format(model, time, initial_inner_num))
-        target_inner_num = initial_inner_num / time * reference_time
+        time, resulting_inner_num = time_placement(circuit_path, circuit_name, current_basepath, place_only=True, inner_num=initial_inner_num)
+        if resulting_inner_num is not None:
+            target_inner_num = resulting_inner_num
+            time = initial_inner_num * reference_time / target_inner_num
+        else:
+            print("{} took {}s at inner_num {}".format(model, time, initial_inner_num))
+            target_inner_num = initial_inner_num / time * reference_time
         target_time = 0
         channel_widths = []
         critical_paths = []
@@ -53,8 +55,9 @@ def analyze_nns(circuit_path: str, circuit_name: str, type: str):
             critical_paths.append(quality_tmp[1])
             copy_placement_and_routing(circuit_path, circuit_name, current_specific_path)
         target_time = target_time / 3
-        print("{} took {}s at inner_num {}, achieving ({}, {})".format(
-            model, time, target_inner_num, np.asarray(channel_widths).mean(), np.asarray(critical_paths).mean()))
+        print("{} took {}s at inner_num {}, achieving ({}, {}) at inner_num {}, taking {}s".format(
+            model, time, initial_inner_num, np.asarray(channel_widths).mean(),
+            np.asarray(critical_paths).mean(), target_inner_num, target_time))
         runtime_quality_map[(model, circuit_name)] = (time, target_time, (channel_widths, critical_paths))
         remove_model(type)
     reset_vpr_context()
@@ -74,11 +77,8 @@ if __name__ == "__main__":
             benchmark_basepath,
             circuit
         ))
-        # pack the circuit
-        pack_circuit(current_circuit_path, circuit, model_base_path)
-        # time reference
+        # pack_circuit(current_circuit_path, circuit, model_base_path)
         time_reference(current_circuit_path, circuit, model_base_path)
-        # set rnn vpr
         analyze_nns(current_circuit_path, circuit, "rnn")
         analyze_nns(current_circuit_path, circuit, "cnn")
 

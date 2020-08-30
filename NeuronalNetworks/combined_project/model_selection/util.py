@@ -5,7 +5,7 @@ import numpy as np
 
 redundancy_count = 3
 
-eval_circuits = ["mkDelayWorker32B"]  # , "raygentop"]
+eval_circuits = ["raygentop", "mkDelayWorker32B"]
 initial_inner_num = 0.005
 eval_reference_inner_num = 10
 
@@ -13,6 +13,9 @@ test_circuits = ["", "", ""]
 test_sampling_points = [1, 10, 50]
 
 model_base_path = os.path.abspath("../models/")
+
+rnn_model_base_path = os.path.abspath(os.path.join(model_base_path, "rnn"))
+cnn_model_base_path = os.path.abspath(os.path.join(model_base_path, "conv"))
 
 vpr_base_path = os.path.abspath("../../../VPR_PROJECT/vpr/")
 rnn_model_target_path = os.path.abspath(os.path.join(vpr_base_path, "src/ml_integration/model_lstm/model"))
@@ -44,7 +47,10 @@ def move_log_file(target_path, circuit_name):
 
 
 def delete_log_file():
-    os.remove(log_path)
+    try:
+        os.remove(log_path)
+    except FileNotFoundError:
+        pass
 
 
 def pack_circuit(circuit_path, circuit_name, target_path):
@@ -79,13 +85,36 @@ def time_placement(circuit_path, circuit_name, target_path, place_only, inner_nu
     :param inner_num: value for "--inner_num" parameter to pass to vpr, factor for moves per temperature step
     :return: time needed to place the circuit if place_only, else also placement quality
     """
-    random_seed = np.random.randint(2147483647)
-    execute("{} {} {}.blif --place{}--inner_num {} --seed {}".format(
-        vpr_path, arch_path, circuit_path, " " if place_only else " --route ", inner_num, random_seed)
-    )
+    if place_only and os.path.isfile(
+            os.path.abspath(
+                os.path.join(
+                    os.path.join(
+                        target_path,
+                        "placement_nr_2"
+                    ),
+                    "vpr_stdout_{}.log".format(circuit_name)
+                )
+            )
+    ):
+        with open(os.path.abspath(
+                os.path.join(os.path.join(target_path, "placement_nr_2"), "vpr_stdout_{}.log".format(circuit_name))
+        ), "r") as f:
+            lines = f.readlines()
+        for line in lines:
+            if "--place --route --inner_num" in line:
+                return None, float(line.split(" ")[6])
+    elif os.path.isfile(os.path.abspath(os.path.join(target_path, "vpr_stdout_{}.log".format(circuit_name)))):
+        with open(os.path.abspath(os.path.join(target_path, "vpr_stdout_{}.log".format(circuit_name))), "r") as f:
+            lines = f.readlines()
+        target_path = None
+    else:
+        random_seed = np.random.randint(2147483647)
+        execute("{} {} {}.blif --place{}--inner_num {} --seed {}".format(
+            vpr_path, arch_path, circuit_path, " " if place_only else " --route ", inner_num, random_seed)
+        )
 
-    with open(os.path.abspath("./vpr_stdout.log"), "r") as f:
-        lines = f.readlines()
+        with open(os.path.abspath("./vpr_stdout.log"), "r") as f:
+            lines = f.readlines()
     placement_time = -1
     routing_width = -1
     routing_critical_path = -1
@@ -96,12 +125,12 @@ def time_placement(circuit_path, circuit_name, target_path, place_only, inner_nu
             routing_width = int(line.split(" ")[9].split(".")[0])
         if line.startswith("Final critical path:"):
             routing_critical_path = float(line.split(" ")[3])
-    if target_path is not None:
+    if not place_only and target_path is not None:
         move_log_file(target_path, circuit_name)
     else:
         delete_log_file()
     if place_only:
-        return placement_time
+        return placement_time, None
     else:
         return placement_time, (routing_width, routing_critical_path)
 
@@ -158,6 +187,8 @@ def copy_placement_and_routing(circuit_path, circuit_name: str, target_path: str
     :param target_path: absolute path of directory to store the files
     :return: nothing, modifies file system
     """
+    if os.path.isfile(os.path.abspath(os.path.join(target_path, "{}.place".format(circuit_name)))):
+        return
     try:
         os.makedirs(target_path)
     except FileExistsError:
