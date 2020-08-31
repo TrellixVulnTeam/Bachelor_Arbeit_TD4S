@@ -17,7 +17,9 @@ For the final evaluation we select three circuits from the \gls{VPR} benchmark s
 
 In the same manner we also select an \textit{evaluation} set of one circuit (\textit{raygentop.blif}), which we will need for our chosen method of model selection, detailed in \ref{ch:model-selection}. This set is intentionally small to keep the computational effort of model selection manageable.
 
-As the \gls{VPR} Placement algorithm is a pseudo-randomized heuristic not guarantee to yield reproducible results (when starting from a different state), each evaluation on each of this circuits will be averaged over 3 redundant placing attempts with different random seeds to ensure robust results.
+As the \gls{VPR} Placement algorithm is a pseudo-randomized heuristic not guarantee to yield reproducible results (when starting from a different state), each evaluation on each of this circuits will be performed with 3 redundant placing attempts with different random seeds to ensure robust results. 
+
+We then select the median of the three performance scores, not their mean, which makes our evaluation robust against outliers.
 
 \subsection{Runtime/Quality Trade-off}
 
@@ -134,25 +136,35 @@ From these candidates, the best one is selected by evaluating each independently
 
 As these groups of candidates are generated from discrete parameters, e.g. dense layer count, this model selection approach constitutes a grid search over these hyperparameters.
 
-By evaluating the \gls{NN} candidates on the evaluation set at the \textit{slow-mode} sampling point we determine their relative performance. A visualization of the results in \ref{fig:eval-hyperopt-surface} clearly shows a correlation between network complexity and routing quality: Smaller networks produce better results, with the exception of \glspl{CNN} without convolutional layers. These models, using less time for a prediction, allow for a higher number of moves per temperature step, although producing less accurate predictions than their more complex counterparts. The properties of convolutional layers, while computationally being rather expensive (at least compared to the "tiny" dense layers), seem to be beneficial to accurately predict the wiring cost. As the \gls{LSTM} layers of the \glspl{RNN} are required to encode the input data for the following dense layers, their suitedness to the problem can not be measured that easily.
+By evaluating the \gls{NN} candidates on the evaluation set at the \textit{slow-mode} sampling point we determine their relative performance. A visualization of the results in Figure \ref{fig:eval-hyperopt-surface} clearly shows a correlation between network complexity and routing quality: Smaller networks produce better results, with the exception of \glspl{CNN} without convolutional layers. These models, using less time for a prediction, allow for a higher number of moves per temperature step, although producing less accurate predictions than their more complex counterparts. The properties of convolutional layers, while computationally being rather expensive (at least compared to the "tiny" dense layers), seem to be beneficial to accurately predict the wiring cost. As the \gls{LSTM} layers of the \glspl{RNN} are required to encode the input data for the following dense layers, their suitedness to the problem can not be measured that easily.
 
 The exact results are presented in \ref{table:rnn-hyperopt-results} and \ref{table:cnn-hyperopt-results}. We thus select \textit{1\_conv\_layers\_deflating\_kernel\_size\_7} and \textit{1\_lstm\_layers\_1\_dense\_layers\_inflating} as the best \gls{CNN} and \gls{RNN} models, respectively.
 
-By comparing the performance to that of the unchanged \gls{VPR} Placer we can, however, also see, that none of the \glspl{NN} is able to beat \gls{HPWL} in \textit{slow-mode} (see \ref{fig:eval-hyperopt-surface-reference}).
+By comparing the performance to that of the unchanged \gls{VPR} Placer we can, however, also see, that none of the \glspl{NN} is able to beat \gls{HPWL} in \textit{slow-mode} (see Figure \ref{fig:eval-hyperopt-surface-reference}).
 
 \section{Results}
 
 With a single network per type the modified \gls{VPR} Placer can now be evaluated against the unchanged version (reference system).
 
-First, we present the performance of the reference system on our selected benchmarking test set. We then proceed by performing the same evaluation for our modified versions of the \gls{VPR} Placer, using \glspl{CNN} and\glspl{RNN}, respectively. A comprehensive comparison will answer the main question of this thesis, whether \gls{VPR} can be improved by replacing the crude \gls{HPWL} metric with more accurate, but also more expensive \glspl{NN}. Finally, we discuss our results and try to explain the observed behaviour.
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/eval-ch_intrinsics-chan-width-min.png}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/eval-ch_intrinsics-chan-width-min.png}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/eval-ch_intrinsics-chan-width-min.png}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{plots/eval-ch_intrinsics-chan-width-min.png}
+	\end{subfigure}
+	\caption{Median of achieved channel widths over sampling points per circuit.}
+	\label{fig:eval-median}
+\end{figure}
 
-\subsection{Reference System (Unchanged \gls{VPR})}
-
-\subsection{\gls{CNN} Integration}
-
-\subsection{\gls{RNN} Integration}
-
-\subsection{Comparison}
+Figure \ref{fig:eval-median} shows the achieved channel widths for the reference system and our \gls{CNN} and \gls{RNN} versions on the test set. Our modified placer using \glspl{NN} is able to significantly outperform the reference system on both small circuits, but is inferior on the larger one. 
 
 \subsection{Justification}
 
