@@ -11,6 +11,7 @@ plt.xlabel("number of terminals in net")
 plt.ylabel("number of nets in training set")
 plt.title("distribution of terminal counts (no duplicates) in training set\n(loaded from file 'stereovision.txt')")
 
+plt.savefig("../../../Thesis/plots/data-distribution-full-fine.png")
 plt.show()
 
 plt.hist(coord_pair_lengths, bins=10)
@@ -18,6 +19,7 @@ plt.xlabel("number of terminals in net")
 plt.ylabel("number of nets in training set")
 plt.title("distribution of terminal counts (no duplicates) in training set\n(loaded from file 'stereovision.txt')")
 
+plt.savefig("../../../Thesis/plots/data-distribution-full-coarse.png")
 plt.show()
 
 # sort training data by length / number of coordinate pairs
@@ -36,6 +38,7 @@ plt.xlabel("number of terminals in net")
 plt.ylabel("number of nets in training set")
 plt.title("distribution of terminal counts (no duplicates) in 'balanced' training set\n(loaded from file 'stereovision.txt' with 'data_limit'=4000)")
 
+plt.savefig("../../../Thesis/plots/data-distribution-limited-fine.png")
 plt.show()
 
 plt.hist(coord_pair_lengths, bins=10)
@@ -43,4 +46,5 @@ plt.xlabel("number of terminals in net")
 plt.ylabel("number of nets in training set")
 plt.title("distribution of terminal counts (no duplicates) in 'balanced' training set\n(loaded from file 'stereovision.txt' with 'data_limit'=4000)")
 
+plt.savefig("../../../Thesis/plots/data-distribution-limited-coarse.png")
 plt.show()

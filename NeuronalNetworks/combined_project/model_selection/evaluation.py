@@ -1,7 +1,7 @@
 from model_selection.util import *
 
-best_rnn = "asdf"
-best_cnn = "asdf"
+best_rnn = "1_lstm_layers_1_dense_layers_inflating"
+best_cnn = "1_conv_layers_deflating_kernel_size_7"
 
 evaluation_basepath = os.path.abspath("./evaluation_results")
 evaluation_reference_path = os.path.abspath("./evaluation_results/reference/")
@@ -15,6 +15,18 @@ def eval_type(circuit_path, circuit_name, target_path, type: str, inner_num, ref
     qualities = []
 
     set_vpr_context(type)
+
+    if type != "reference":
+        if type == "rnn":
+            deploy_model(
+                type,
+                os.path.abspath(os.path.join(os.path.join(rnn_model_base_path, best_rnn), "model"))
+            )
+        else:
+            deploy_model(
+                type,
+                os.path.abspath(os.path.join(os.path.join(cnn_model_base_path, best_cnn), "model"))
+            )
 
     for i in range(redundancy_count):
         current_specific_path = os.path.abspath(
@@ -33,6 +45,8 @@ def eval_type(circuit_path, circuit_name, target_path, type: str, inner_num, ref
         avg_time += time
         qualities.append(quality)
 
+    if type != "reference":
+        remove_model(type)
     reset_vpr_context()
 
     avg_time = avg_time / redundancy_count
@@ -84,15 +98,24 @@ if __name__ == "__main__":
 
     # evaluate each circuit
     for circuit in test_circuits:
+
+        print("\n\n\nevaluating circuit {}\n\n\n".format(circuit))
+
         # get absolute circuit path
         current_circuit_path = os.path.abspath(os.path.join(
             benchmark_basepath,
             circuit
         ))
-        # pack the circuit
-        pack_circuit(current_circuit_path, circuit, model_base_path)
+        try:
+            performance_map[("reference", circuit, test_sampling_points[0])]
+        except KeyError:
+            # pack the circuit
+            pack_circuit(current_circuit_path, circuit, evaluation_basepath)
         # evaluate on all sampling points
         for inner_num_reference in test_sampling_points:
+
+            print("\n\n\nevaluating sample_point {}\n\n\n".format(inner_num_reference))
+
             # eval reference
             # (if not already done, supports breaking and restarting the process due to potentially large runtime)
             try:

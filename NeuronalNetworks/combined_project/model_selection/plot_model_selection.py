@@ -191,8 +191,8 @@ def print_result_table(circuit):
             tuples,
             [
                 {
-                    "channel_width": np.asarray(runtime_quality_map[key][1]).mean(),
-                    "critical_path_ns": np.asarray(runtime_quality_map[key][2]).mean()
+                    "channel_width": round(np.asarray(runtime_quality_map[key][2][0]).mean(), 2),
+                    "critical_path_ns": round(np.asarray(runtime_quality_map[key][2][1]).mean(), 2)
                 }
                 for key
                 in keys
@@ -200,7 +200,7 @@ def print_result_table(circuit):
         )
     )
     index=pd.MultiIndex.from_tuples(tuples, names=['lstm_layer_count', 'dense_layer_count', 'structure'])
-    df = pd.DataFrame(dict_lstm, columns=index)
+    df = pd.DataFrame(dict_lstm, columns=index).transpose()
     df.to_latex("model_selection_lstm_performance_table_{}_latex.txt".format(circuit))
 
     keys = list(runtime_quality_map.keys())
@@ -213,8 +213,8 @@ def print_result_table(circuit):
             tuples,
             [
                 {
-                    "channel_width": np.asarray(runtime_quality_map[key][1]).mean(),
-                    "critical_path_ns": np.asarray(runtime_quality_map[key][2]).mean()
+                    "channel_width": np.asarray(runtime_quality_map[key][2][0]).mean(),
+                    "critical_path_ns": np.asarray(runtime_quality_map[key][2][1]).mean()
                 }
                 for key
                 in keys
@@ -222,13 +222,37 @@ def print_result_table(circuit):
         )
     )
     index=pd.MultiIndex.from_tuples(tuples, names=['conv_layer_count', 'structure', 'kernel_size'])
-    df = pd.DataFrame(dict_lstm, columns=index)
+    df = pd.DataFrame(dict_lstm, columns=index).transpose()
     df.to_latex("model_selection_cnn_performance_table_{}_latex.txt".format(circuit))
 
 
+def print_best_model(circuit):
+
+    keys = list(runtime_quality_map.keys())
+    keys = [entry for entry in keys if isinstance(entry, tuple)]
+    keys = [entry for entry in keys if entry[1] == circuit]
+
+    results = [(key, runtime_quality_map[key][2][0]) for key in keys]
+    results = [(key, np.asarray(value).min()) for key, value in results]
+
+    results_rnn = [(key, value) for key, value in results if "lstm" in key[0]]
+    values_rnn = [value for key, value in results_rnn]
+    result_rnn = [key for key, value in results_rnn if value == min(values_rnn)]
+
+    print("best rnn: {} with channel_width {}".format(
+        result_rnn[0] if len(result_rnn) == 1 else result_rnn[1], min(values_rnn))  # does not change optimality of choice, but produces the chosen best_rnn on present data...
+    )
+
+    results_cnn = [(key, value) for key, value in results if "conv" in key[0]]
+    values_cnn = [value for key, value in results_cnn]
+    result_cnn = [key for key, value in results_cnn if value == min(values_cnn)]
+
+    print("best cnn: {} with channel_width {}".format(result_cnn[0], min(values_cnn)))
+
 
 if __name__ == "__main__":
-    plot_model_scores_over_hyperparams(eval_circuits[0], "channel_width", reference=False)
-    plot_model_scores_over_hyperparams(eval_circuits[0], "critical path length (ns)", reference=False)
-
-    print_result_table(eval_circuits[0])
+    # plot_model_scores_over_hyperparams(eval_circuits[0], "channel_width", reference=True)
+    # plot_model_scores_over_hyperparams(eval_circuits[0], "critical path length (ns)", reference=True)
+    #
+    # print_result_table(eval_circuits[0])
+    print_best_model(eval_circuits[0])

@@ -4,12 +4,13 @@ import shutil
 import numpy as np
 
 redundancy_count = 3
+metrics = ["channel_width", "critical path length (ns)"]
 
 eval_circuits = ["raygentop", "mkDelayWorker32B"]
 initial_inner_num = 0.005
 eval_reference_inner_num = 10
 
-test_circuits = ["", "", ""]
+test_circuits = ["diffeq2", "or1200", "ch_intrinsics"]  # , "mcml", "LU32PEEng"]  #
 test_sampling_points = [1, 10, 50]
 
 model_base_path = os.path.abspath("../models/")

@@ -1,10 +1,17 @@
-\begin{tabular}{lrrrrrrrrrr}
+\begin{tabular}{lllrr}
 \toprule
-conv\_layer\_count & \multicolumn{2}{l}{0} & \multicolumn{4}{l}{1} & \multicolumn{4}{l}{2} \\
-structure &  deflating &  inflating & \multicolumn{2}{l}{deflating} & \multicolumn{2}{l}{inflating} & \multicolumn{2}{l}{deflating} & \multicolumn{2}{l}{inflating} \\
-kernel\_size &         -1 &         -1 &          3 &          7 &          3 &          7 &          3 &          7 &         3 &          7 \\
+  &           &   &  channel\_width &  critical\_path\_ns \\
+conv\_layer\_count & structure & kernel\_size &                &                   \\
 \midrule
-channel\_width    &  10.960000 &  10.286667 &  19.403333 &  17.916667 &  19.170000 &  19.513333 &  19.623333 &  18.326667 &  19.56000 &  20.116667 \\
-critical\_path\_ns &  43.174633 &  44.537558 &  42.930250 &  42.464312 &  44.385727 &  42.217762 &  43.368112 &  44.328995 &  44.47783 &  42.779675 \\
+0 & deflating & -1 &      80.000000 &          6.349267 \\
+  & inflating & -1 &      82.666667 &          6.408450 \\
+1 & deflating & 3 &      78.666667 &          7.193833 \\
+  &           & 7 &      78.000000 &          6.928623 \\
+  & inflating & 3 &      82.000000 &          6.771453 \\
+  &           & 7 &      78.000000 &          6.435523 \\
+2 & deflating & 3 &      80.000000 &          6.736223 \\
+  &           & 7 &      81.333333 &          7.324657 \\
+  & inflating & 3 &      82.000000 &          6.955660 \\
+  &           & 7 &      78.666667 &          6.892683 \\
 \bottomrule
 \end{tabular}
