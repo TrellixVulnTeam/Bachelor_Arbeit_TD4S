@@ -60,9 +60,15 @@ def get_perf(circuit, metric, type):
                 performance_map["reference", circuit, sampling_point][1]
             )[:, 0 if metric == "channel_width" else 1].mean()
             if type == "mean" else
-            np.asarray(
-                performance_map["reference", circuit, sampling_point][1]
-            )[:, 0 if metric == "channel_width" else 1].min()
+            (
+                np.asarray(
+                    performance_map["reference", circuit, sampling_point][1]
+                )[:, 0 if metric == "channel_width" else 1].min()
+                if type == "min" else
+                np.median(np.asarray(
+                    performance_map["reference", circuit, sampling_point][1]
+                )[:, 0 if metric == "channel_width" else 1])
+            )
         )
         for sampling_point
         in test_sampling_points
@@ -76,6 +82,10 @@ def get_perf(circuit, metric, type):
             np.asarray(
                 performance_map["cnn", circuit, sampling_point][1]
             )[:, 0 if metric == "channel_width" else 1].min()
+            if type == "min" else
+            np.median(np.asarray(
+                performance_map["cnn", circuit, sampling_point][1]
+            )[:, 0 if metric == "channel_width" else 1])
         )
         for sampling_point
         in test_sampling_points
@@ -89,6 +99,10 @@ def get_perf(circuit, metric, type):
             np.asarray(
                 performance_map["rnn", circuit, sampling_point][1]
             )[:, 0 if metric == "channel_width" else 1].min()
+            if type == "min" else
+            np.median(np.asarray(
+                performance_map["rnn", circuit, sampling_point][1]
+            )[:, 0 if metric == "channel_width" else 1])
         )
         for sampling_point
         in test_sampling_points
@@ -131,7 +145,7 @@ def plot_perf_over_sampling_points_all_circuits(metric, type):
 
 if __name__ == "__main__":
     # print_result_table()
-    for current_type in ["mean", "min"]:
+    for current_type in ["mean", "min", "median"]:
         for current_metric in metrics:
             for current_circuit in test_circuits:
                 plot_perf_over_sampling_points_one_circuit(current_circuit, current_metric, current_type)

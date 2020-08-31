@@ -233,12 +233,13 @@ def print_best_model(circuit):
     keys = [entry for entry in keys if entry[1] == circuit]
 
     results = [(key, runtime_quality_map[key][2][0]) for key in keys]
-    results = [(key, np.asarray(value).min()) for key, value in results]
+    results = [(key, np.median(np.asarray(value))) for key, value in results]
 
     results_rnn = [(key, value) for key, value in results if "lstm" in key[0]]
     values_rnn = [value for key, value in results_rnn]
     result_rnn = [key for key, value in results_rnn if value == min(values_rnn)]
 
+    # print(result_rnn)
     print("best rnn: {} with channel_width {}".format(
         result_rnn[0] if len(result_rnn) == 1 else result_rnn[1], min(values_rnn))  # does not change optimality of choice, but produces the chosen best_rnn on present data...
     )
@@ -247,7 +248,10 @@ def print_best_model(circuit):
     values_cnn = [value for key, value in results_cnn]
     result_cnn = [key for key, value in results_cnn if value == min(values_cnn)]
 
-    print("best cnn: {} with channel_width {}".format(result_cnn[0], min(values_cnn)))
+    # print(result_cnn)
+    print("best cnn: {} with channel_width {}".format(
+        result_cnn[0] if len(result_cnn) == 1 else result_cnn[1], min(values_cnn))
+    )
 
 
 if __name__ == "__main__":
