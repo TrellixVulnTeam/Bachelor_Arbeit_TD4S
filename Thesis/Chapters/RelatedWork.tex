@@ -5,7 +5,11 @@
 %*****************************************
 \glsresetall % Resets all acronyms to not used
 
+We begin by giving an overview over the technologies and methods used and their domains.
+
 \section{Hardware High-Level Synthesis}
+
+Hardware high-hevel synthesis is the process of automatically translating an abstract high-level description of a circuits functionality into the actual specification of the hardware needed to realize it.
 
 \subsection{The VTR Project and VPR}
 
@@ -17,17 +21,15 @@ As the name implies, \gls{VPR} performs placing and routing of the \gls{BLIF} ne
 
 \subsubsection{Netlists}
 
-Netlists are a format of describing the logic of an abstract circuit. 
-
-\gls{BLIF} provides an open standard format for saving and interchanging Netlists, enabling interaction of tools from different vendors or projects. 
-
-Such a description of a circuit usually contains blocks and a list of nets.
+Netlists are a format of describing the logic of an abstract circuit, containing blocks and a list of nets.
 
 Blocks are hardware primitives like \glspl{LUT}, \gls{I/O} pads, or basic logic functions, which usually are units of fixed dimensions connecting to the circuit via terminals acting either as signal sources or sinks. In a Netlist, blocks do not have coordinates yet, but are templates of the actual hardware components needed to perform the desired operation.
 
 A Net is the abstraction of wires connecting specific terminals of the blocks referenced by the net. Each net has a single signal source, the output terminal of some block, which it connects to at least one input terminal of another (or possibly the same) block, its sinks.
 
 In conjunction, these describe the full logical signal paths of a circuit, fully defining its logical behaviour.
+
+\gls{BLIF} provides an open standard format for saving and interchanging logic-level circuit descriptions, enabling interaction of tools from different vendors or projects.\cite{blif-web} \gls{VPR} contains a packing tool to translate circuits in \gls{BLIF} format into Netlists, and therefore supports \gls{BLIF} circuits as input.
 
 \subsubsection{Placement}
 
@@ -39,23 +41,23 @@ in \gls{VPR}, the search for an optimal placement is conducted via a classical s
 
 Over a run of the algorithm the temporary placement converges towards a weighted local minimum of summed up estimated wiring costs and critical path length. Due to the ability to accept worsening moves, the simulated annealing algorithm is able to escape bad local minima and to generally produce "good" results. However, as it is a heuristic, no guarantees about the quality of the solution are given.
 
-The quality improvement over increased runtime (controlled linearly by setting the number of moves per temperature level) behaves approximately logarithmically TODO, with a tenfold runtime only achieving 10\% improved quality.\cite{TODO}
+The quality improvement over increased runtime (controlled linearly by setting the number of moves per temperature level) behaves approximately logarithmically, with a tenfold runtime only achieving 10\% improved quality.\cite{vtr8}
 
 It is this property that warrants our assumption that the algorithm can be improved by introducing a substantial increase in runtime in return for substantially more accurate wiring cost estimates.
 
 \subsubsection{Routing}
 
-Once the blocks are placed, they still need to be connected physically. Not only is a straight connection from signal source to sink usually not possible for most nets as different wires need to be electrically isolated from each other and subsequently must not simply cross, but once there are several sinks in a net, finding the ideal connection structure (lowest accumulated wire length) also becomes a np-hard problem\cite{TODO}.
+Once the blocks are placed, they still need to be connected physically. Not only is a straight connection from signal source to sink usually not possible for most nets as different wires need to be electrically isolated from each other and subsequently must not simply cross, but once there are several sinks in a net, finding the ideal connection structure (lowest accumulated wire length) also becomes a np-hard problem\cite{rsmt-complexity}.
 
 While smart placement can already minimize the need for crossing wires, a certain amount usually remains unavoidable on large circuits. On static architectures like \gls{PCB} or Silicon, this is usually compensated by introducing multiple physical layers via which wires can evade. On \glspl{FPGA} however, wires have to be routed through a grid of connection fabric, where each edge consists of a number of parallel wires called channels, which can be freely connected with any adjacent channel at intersection points by configuring a programmable connection matrix.
 
 These limits in available wiring space/resources causes local bottlenecks, which usually require some of the nets to be connected non-ideally in order to meet global constraints and minimize resource usage. The process of specifying the physical wiring of all nets under global and local constraints is called Routing.
 
-\gls{VPR} uses a greedy heuristics known as "rip-up and re-route" to achieve Routing.\cite{TODO} This roughly means routing net after net locally optimally using only the currently remaining resources. Once it is not possible at all to route a net because there are no resources left that would connect all the terminals, the algorithm backtracks and unroutes certain nets, freeing their routing resources.
+\gls{VPR} uses a greedy heuristics known as "rip-up and re-route" to achieve Routing. This roughly means routing net after net locally optimally using only the currently remaining resources. Once it is not possible at all to route a net because there are no resources left that would connect all the terminals, the algorithm backtracks and unroutes certain nets, freeing their routing resources.\cite{vtr8}
 
 First and foremost, \gls{VPR} minimizes the global number of parallel channels available at each grid edge. This is achieved by imposing a hard limit, trying to route the circuit, and increasing the limit if no valid routing was found. If the circuit was routed successfully, the limit is reduced, until by manner of binary partitioning the minimum channel count is found.
 
-For the local routing of a single net, the Maze-Router\cite{TODO} algorithm is used, again a greedy heuristics, which is however guaranteed to produce results within a certain margin of the optimal solution (a \gls{RSMT}).\cite{TODO}
+For the local routing of a single net, the Maze-Router\cite{Maze-Router} algorithm is used, again a greedy heuristics, which is however guaranteed to produce results within a certain margin of the optimal solution (a \gls{RSMT}), as it is at least as good as the corresponding \gls{RMST}.\cite{rmst-quality}
 
 \subsection{Wirelength Estimation}
 
@@ -63,7 +65,7 @@ Estimating the wiring cost of a temporary placement is a central part of the \gl
 
 Here, the wiring cost is defined as the absolute distance of wiring required for each net. As the effects different nets have on each other are not known before routing the circuit, the wiring distance for each net is computed in isolation assuming abundant resources so any two points in the routing grid can be directly and minimally connected. Together with a uniform grid this results in the Manhattan-distance as cost of the connection between two points.
 
-However, computing the minimal rectilinear tree connecting the source of a net with all its sinks is a np-hard problem in the number of sinks called \gls{RSMT}.\cite{TODO} Furthermore, the wiring cost computation is located at the innermost part of the simulated annealing algorithm used for Placement, which makes it highly runtime-critical.
+However, computing the minimal rectilinear tree connecting the source of a net with all its sinks is a np-hard problem in the number of sinks called \gls{RSMT}.\cite{rsmt-complexity} Furthermore, the wiring cost computation is located at the innermost part of the simulated annealing algorithm used for Placement, which makes it highly runtime-critical.
 
 Therefore, computing the \gls{RSMT} is impractical, and instead a very simple heuristic is used to estimate the wiring cost of individual nets.
 
@@ -113,7 +115,7 @@ Classification is the prediction of a discrete class label, e.g. classifying ima
 
 \glspl{CNN} are a special class of \glspl{NN}, containing convolutional layers, which essentially implement learnable sliding-window filters over the input tensor. 
 
-With their inherent ability to detect localized structures, \glspl{CNN} perform exceptionally well on image processing, essentially outperforming any other general-purpose image processing algorithm.\cite{TODO}
+With their inherent ability to detect localized structures, \glspl{CNN} perform exceptionally well on image processing, essentially outperforming any other general-purpose image processing algorithm.\cite{dl-vs-cv}\cite{cv-vs-dl}
 
 \subsection{\glspl{RNN}}
 
@@ -123,11 +125,11 @@ With their inherent ability to detect localized structures, \glspl{CNN} perform 
 
 One important advantage of \glspl{RNN} is their inherent ability to process variable sized inputs without the need for padding or a size limit. While the input tensor dimensions are fixed, the sequence of inputs can have arbitrary length, with each additional tensor adjusting the internal state and thus the prediction.
 
-A rather recent development in the field of \glspl{RNN} is the \gls{LSTM}\cite{TODO}, a type of \gls{RNN} incorporating the idea of being able to "forget" past inputs, in analogy to biological processing of perception, where past events are at some point forgotten completely and lose any influence on decisions. With regular \glspl{RNN}, this is impossible, and any observation in the sequence always affects the prediction, no matter how far in the past it lies.\cite{TODO}
+One of the most popular types of \glspl{RNN} is the \gls{LSTM}\cite{lstm-paper}, a type of \gls{RNN} able to learn long-term dependencies, a task traditional \glspl{RNN} struggle with.\cite{lstm-web}
 
 \subsection{Application in Wirelength Estimation}
 
-In general, \glspl{NN} are able to approximate arbitrarily complex target functions\cite{TODO} within polynomial asymptotic complexity\cite{NN-complexity-web}\cite{TODO}. However, in praxis, even simple networks are often sufficient to obtain an estimator achieving very low prediction errors. Not only is the complexity of these estimators lower than their target function, but they also have low runtime in practice, making them faster even for small inputs.
+In general, \glspl{NN} are able to approximate arbitrarily complex target functions\cite{universial-approx-web} within polynomial asymptotic complexity\cite{NN-complexity-web}. However, in praxis, even simple networks are often sufficient to obtain an estimator achieving very low prediction errors. Not only is the complexity of these estimators lower than their target function, but they also have low runtime in practice, making them faster even for small inputs.
 
 Therefore, we believe \glspl{NN} could be suited as a wiring cost estimator by predicting the wiring cost of a the current placement of a net, receiving the coordinates of its terminals as inputs. 
 

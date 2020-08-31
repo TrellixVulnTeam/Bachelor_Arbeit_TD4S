@@ -59,19 +59,19 @@ The loading of samples is done using a simple state machine looping over the lin
 	\centering
 	\begin{subfigure}[b]{0.45\linewidth}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/data-distribution-full-fine.png}
 		\end{subfigure}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/data-distribution-full-coarse.png}
 		\end{subfigure}
 		\caption{without balancing}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.45\linewidth}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/data-distribution-limited-fine.png}
 		\end{subfigure}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/data-distribution-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/data-distribution-limited-coarse.png}
 		\end{subfigure}
 		\caption{with balancing}
 	\end{subfigure}
@@ -119,7 +119,7 @@ This scheme is only applicable for net placements with a \glspl{BB} not exceedin
 
 By mapping coordinate values to pixel values, the sample inputs are automatically scaled to the range [0,1], making them appropriate for processing with \glspl{NN}.
 
-The target value for each sample is the unscaled Maze-Router wiring cost, as this saves the effort of post-processing the output in the runtime-critical integration into \gls{VPR}.\cite{TODO}
+The target value for each sample is the unscaled Maze-Router wiring cost, as this saves the effort of post-processing the output in the runtime-critical integration into \gls{VPR}.
 
 \subsubsection{Structure}\label{ch:cnn-design}
 
@@ -145,7 +145,7 @@ To keep runtime small, the structure of our \glspl{CNN} is kept simple, with onl
 
 Our general \gls{CNN} design, as illustrated in \ref{fig:cnn-structure-abstract}, consists of zero to two convolutional layers, followed by a flatten and one to two dense layers. As the last layer, however, is always a dense layer with a single neuron, to achieve regression of one target variable, and the flatten layer is parameter-less, this leaves one to three custom layers. 
 
-The special case of zero convolutional layers reduces the network to a plain artificial \gls{NN}, consisting only of dense layers and one flatten layer, which does not perform any computation but only reshapes the input. As these network variants, however, use the same encoding, and thus the same pre- and post-processing, they are treated the same as the remaining \glspl{CNN}. We note that this does, however, affect the integration of the \glspl{NN} into \gls{VPR}, as the entry point definition for the \gls{tf} API is dependent on the type of the input layer.\cite{TODO-changed}
+The special case of zero convolutional layers reduces the network to a plain artificial \gls{NN}, consisting only of dense layers and one flatten layer, which does not perform any computation but only reshapes the input. As these network variants, however, use the same encoding, and thus the same pre- and post-processing, they are treated the same as the remaining \glspl{CNN}.
 
 The neuron counts per dense layer are structured by two patterns, either with counts increasing to 16 neurons for the last hidden layer, or decreasing to 4.
 
@@ -173,13 +173,13 @@ The filter size of the convolutional layers can be 3x3 or 7x7, but is constant w
 
 For this network, we use the standard training loop by calling the \textit{fit(...)} method of the \gls{tf} model, specifying training and validation data as well as number of epochs and batch size.
 
-However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples as advised by the documentation\cite{TODO}, and pass a generator to the fit method instead of the actual samples.
+However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples, and pass a generator to the fit method instead of the actual samples.
 
-This generator (a slightly adapted version of the one used in a public project\cite{TODO}) pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
+This generator (a slightly adapted version of the one used in a public project\cite{tfrecord-project-web}) pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
 
 Furthermore, in order to keep the effort of training all \gls{CNN} candidates manageable, the dataset was artificially limited to 200.000 samples.
 
-The performance is logged using TensorBoard\cite{TODO}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{TODO}, ready to be deployed to our adapted version of \gls{VPR}.
+The performance is logged using TensorBoard\cite{tensorboard-web}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{savedmodel-web}, ready to be deployed to our adapted version of \gls{VPR}.
 
 Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model. Indeed, our \gls{CNN} models tend to overfit quickly, depending on the model complexity (see \ref{fig:cnn-train}). 
 
