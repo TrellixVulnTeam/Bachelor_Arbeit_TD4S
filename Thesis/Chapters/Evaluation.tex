@@ -311,17 +311,25 @@ Regarding the first reason, both goals of this thesis have been fulfilled. We pr
 
 Furthermore, while evaluation on our selected test set and sampling points completes within the scale of several hours to one day, we noticed a disproportionate increase in runtime for larger circuits. While the time needed for placing the circuit matched our expectations (based on the formula for computing the number of moves per temperature level), for some reason it becomes nearly impossible to route large circuits placed with our modified placer. A single routing step, which is performed in the manner of seconds when routing a placement produced by the reference system, reaches runtimes of more than an hour on a placement produced by our system.
 
-\subsubsection{Possible Reasons}
-
 TODO plot of vpr logs showing the problem
 
-We further noticed a substantial increase of reported average bounding box size during placement. This increase of several orders of magnitude might to be an issue in the reporting, as it seems highly unlikely that such hypothetical terrible placements could be routed to nearly the same quality as proper placements. Another strong indicator that this constitutes a bug in the logging or statistics computation rather than in the placing itself is the fact that this giant average bounding box size is already reported right after the initial random placement, and continues to decrease during placement just like when using the unchanged \gls{VPR} Placer.
+\subsubsection{Possible Reasons}
 
-The reason this issue was not thoroughly investigated is the fact that it was only noticed in the final phase of this work, when large circuits were placed with the modified placer and subsequently routed for the first time.
+We further noticed a substantial increase of reported \textit{average \gls{BB} cost}, or average estimated wirelength, during placement. This roughly tenfold increase might originate from the different target values of our estimators. Pure \gls{HPWL} is a lower bound to the actual wiring cost, and even the corrected/scaled \gls{HPWL} used in \gls{VPR} can be assumed to generally underestimate large nets. As our \glspl{NN} try to predict the actual wirelength, and might make errors in both directions, a certain increase in average placement driven cost is not surprising.
+
+Still, an increase of this magnitude might also be caused by some bug or incompatible code, although we were not able to find any evidence of this when inspecting the \gls{VPR} source code.
+
+This change in the general scale of the \gls{BB} cost could also have incurred other implications. In the simulated annealing algorithm that constitutes the core of the \gls{VPR} Placer timing and placement driven costs are combined to assess the effects of a move. Therefore the weighting of the components of this combination might be required to mitigate this effect.
+
+However, seeing as the simulated annealer still converges as in the unchanged system, those effects should not be too strong. The eventual decrease in estimated \gls{BB} cost of the temporary placement matches that of the reference system.
+
+This whole issue was only noticed in the final phase of this work, when large circuits were placed with the modified placer and subsequently routed for the first time. Therefore, we were only able to perform basic tests and analysis.
 
 \subsection{Future Work}
 
 As such, it is left as future work to identify and solve this issue. Once this is done, the system can be re-evaluated on a larger test set also containing very large circuits. 
+
+If this system is evaluated further, it would also be appropriate to raise the number of redundant placements, which would allow for quantifying ones confidence in in the evaluation results, as Xu et al. do in \cite{star-plus-paper}.
 
 Apart from that, it might prove worthwhile to profile the modified system and check for performance bottlenecks. Especially the \gls{tf} interface seems overly complicated for such a simple network, and for using only online prediction. Therefore, optimising the integration of the \gls{NN} might reduce the complexity of this runtime critical part of the system.
 
