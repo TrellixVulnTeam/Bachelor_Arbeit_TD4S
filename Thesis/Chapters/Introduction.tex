@@ -5,11 +5,11 @@
 %************************************************
 \glsresetall % Resets all acronyms to not used
 
-In this thesis we modify the popular academic open-source hardware-synthesis tool \gls{VPR}\cite{vtr8} to perform in-placement wirelength estimation using \glspl{NN}.
+In this thesis, we modify the popular academic open-source hardware-synthesis tool \gls{VPR}\cite{vtr8} to perform in-placement wirelength estimation using \glspl{NN}.
 
 \section{Motivation}
 
-The recent progress in the field of deep \glspl{NN} has motivated their use in a huge variety of fields, from weather prediction, over efficient data compression, to ubiquitous voice assistants. Deep \glspl{NN} have not only enabled the efficient solving of previously hard problems, but also improve many existing systems by often providing faster or more accurate predictions than other categories of \gls{ML}.
+The recent progress in the field of deep \glspl{NN} has motivated their use in a vast variety of fields, from weather prediction, over efficient data compression, to ubiquitous voice assistants. Deep \glspl{NN} have not only enabled the efficient solving of previously hard problems, but also improve many existing systems by often providing faster or more accurate predictions than other categories of \gls{ML}.
 
 One field that employs computationally intensive heuristics, which might profit from the characteristics of \glspl{NN}, but which has not yet gained much attention for research about the benefits of integrating \glspl{NN}, is automated hardware synthesis. While there are many approaches to leverage deep \glspl{NN}, there are also many unexplored areas with respect to this rather recent technology.
 
@@ -21,8 +21,8 @@ Even though inference in \glspl{NN} will most certainly be orders of magnitude s
 
 Our contribution in this thesis consists of analysing \gls{VPR}, modifying its placement algorithm to use \gls{NN} inference for wirelength estimation, and evaluating the effectiveness of this approach.
 
-We will implement two different types of \glspl{NN}, namely \glspl{RNN} and \glspl{CNN}, and integrate them into \gls{VPR}. A comprehensive comparison with the unchanged \gls{VPR} Placer will then show, if this approach is able to improve the performance of \gls{VPR}.
+We will implement two different types of \glspl{NN}, namely \glspl{RNN} and \glspl{CNN}, and integrate them into \gls{VPR}. A comprehensive comparison with the unchanged \gls{VPR} Placer will then show if this approach is able to improve the performance of \gls{VPR}.
 
 \section{Outline}
 
-This thesis is structured as follows: First we give an overview over the problem, its domain, and the technologies we deploy in Chapter \ref{ch:relatedwork}. We then outline our approach and chosen methods in Chapter \ref{ch:design}. Implementation and data specific details are given in Chapter \ref{ch:implementation}. We thoroughly evaluate and analyse our system in Chapter \ref{ch:evaluation}, also discussing our results and sketching possible enhancements. This thesis is concluded in Chapter \ref{ch:Conclusions}. Instructions on the installation and usage of our system and additional resources can be found in the Appendices \ref{ch:InstallAndUse} and \ref{ch:AdditionalData}, respectively.
+This thesis is structured as follows: First, we give an overview of the problem, its domain, and the technologies we deploy in Chapter \ref{ch:relatedwork}. We then outline our approach and chosen methods in Chapter \ref{ch:design}. Implementation and data specific details are given in Chapter \ref{ch:implementation}. We thoroughly evaluate and analyse our system in Chapter \ref{ch:evaluation}, also discussing our results and sketching possible enhancements. This thesis is concluded in Chapter \ref{ch:Conclusions}. Instructions on the installation and usage of our system and additional resources can be found in the Appendices \ref{ch:InstallAndUse} and \ref{ch:AdditionalData}, respectively.

@@ -23,7 +23,7 @@ We then select the median of the three performance scores, not their mean, which
 
 \subsection{Runtime/Quality Trade-off}
 
-Our metric of choice is runtime/quality trade-off, specifically discretely sampled routing quality (minimum channel width and critical path length) for certain approximate absolute placement run-times. These run-times, or sampling points, are selected per benchmark circuit relative to the runtime of the unchanged \gls{VPR} Placer (t\textsubscript{p}) as:
+Our metric of choice is runtime/quality trade-off, specifically discretely sampled routing quality (minimum channel width and critical path length) for certain approximate absolute placement runtimes. These runtimes, or sampling points, are selected per benchmark circuit relative to the runtime of the unchanged \gls{VPR} Placer (t\textsubscript{p}) as:
 
 \begin{itemize}
 	\item 1   * t\textsubscript{p}, or \textit{sampling point 1}
@@ -33,9 +33,9 @@ Our metric of choice is runtime/quality trade-off, specifically discretely sampl
 	\item 1250* t\textsubscript{p}, or \textit{sampling point 1250}
 \end{itemize}
 
-The actual run-time, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{inner\_num} setting of \gls{VPR}.\cite{vtr8} 
+The actual runtime, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{inner\_num} setting of \gls{VPR}.\cite{vtr8} 
 
-Based on observations we state without formal proof that most of the computations of the \gls{VPR} Placer are performed inside each of these steps. Furthermore, while steps perform random actions and can have vastly differing run-time, within a certain \textit{temperature level} steps with different run-times are distributed randomly, and the number of steps per temperature is generally high. Therefore, changing this number of steps will not change the distribution of step run-times within a certain temperature-level, which means their average run-time remains approximately the same. Therefore, changes to the \textit{inner\_num} parameter, which is a linear factor for the actual number of steps performed, affect the total runtime of the modified \gls{VPR} Placer approximately linearly.
+Based on observations we state without formal proof that most of the computations of the \gls{VPR} Placer are performed inside each of these steps. Furthermore, while steps perform random actions and can have vastly differing runtime, within a certain \textit{temperature level} steps with different runtimes are distributed randomly, and the number of steps per temperature is generally high. Therefore, changing this number of steps will not change the distribution of step runtimes within a certain temperature-level, which means their average runtime remains approximately the same. Therefore, changes to the \textit{inner\_num} parameter, which is a linear factor for the actual number of steps performed, affect the total runtime of the modified \gls{VPR} Placer approximately linearly.
 
 By placing a benchmark circuit using a fixed setting for \textit{inner\_num}, we acquire the runtime at this setting. As early experiments showed that the runtime of the \gls{VPR} Placer using \glspl{NN} is one to two orders of magnitude slower than using \gls{HPWL}, this value is set to $0.01*num_blocks^(4/3)$, which equals one hundredth of the default value of the \gls{VPR} Placer. Therefore, this first check is estimated to take approximately as much time as the unchanged \gls{VPR} at sampling point 1.
 
@@ -309,13 +309,32 @@ Regarding the first reason, both goals of this thesis have been fulfilled. We pr
 
 \subsubsection{Issues}
 
-Furthermore, while evaluation on our selected test set and sampling points completes within the scale of several hours to one day, we noticed a disproportionate increase in runtime for larger circuits. While the time needed for placing the circuit matched our expectations (based on the formula for computing the number of moves per temperature level), for some reason it becomes nearly impossible to route large circuits placed with our modified placer. A single routing step, which is performed in the manner of seconds when routing a placement produced by the reference system, reaches runtimes of more than an hour on a placement produced by our system.
+Furthermore, while evaluation on our selected test set and sampling points completes within the scale of several hours to one day, we noticed a disproportionate increase in runtime for larger circuits. While the time needed for placing the circuit matched our expectations (based on the formula for computing the number of moves per temperature level), for some reason it becomes nearly impossible to route large circuits placed with our modified placer. A single routing step, which is performed in the manner of seconds when routing a placement produced by the reference system, reaches runtimes of more than an hour on a placement produced by our system. 
 
-TODO plot of vpr logs showing the problem
+\begin{figure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{plots/log_place_ref.png}
+		\caption{\glspl{CNN} - channel width}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{plots/log_place_cnn.png}
+		\caption{\glspl{RNN} - channel width}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{plots/log_route_ref.png}
+		\caption{\glspl{CNN} - critical path length}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{plots/log_route_cnn.png}
+		\caption{\glspl{RNN} - critical path length}
+	\end{subfigure}
+	\caption{Partial Placement (top) and Routing (bottom) logs for circuit \textit{mcml.blif}. Normal behaviour on reference system (left), increased \textit{\gls{BB} cost} and routing time on \gls{CNN} version (right).}
+	\label{fig:eval-problem-logs}
+\end{figure}
 
 \subsubsection{Possible Reasons}
 
-We further noticed a substantial increase of reported \textit{average \gls{BB} cost}, or average estimated wirelength, during placement. This roughly tenfold increase might originate from the different target values of our estimators. Pure \gls{HPWL} is a lower bound to the actual wiring cost, and even the corrected/scaled \gls{HPWL} used in \gls{VPR} can be assumed to generally underestimate large nets. As our \glspl{NN} try to predict the actual wirelength, and might make errors in both directions, a certain increase in average placement driven cost is not surprising.
+We further noticed a substantial increase of reported \textit{average \gls{BB} cost}, or average estimated wirelength, during placement (see Figure \ref{fig:eval-problem-logs}). This roughly tenfold increase might originate from the different target values of our estimators. Pure \gls{HPWL} is a lower bound to the actual wiring cost, and even the corrected/scaled \gls{HPWL} used in \gls{VPR} can be assumed to generally underestimate large nets. As our \glspl{NN} try to predict the actual wirelength, and might make errors in both directions, a certain increase in average placement driven cost is not surprising.
 
 Still, an increase of this magnitude might also be caused by some bug or incompatible code, although we were not able to find any evidence of this when inspecting the \gls{VPR} source code.
 

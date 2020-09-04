@@ -57,7 +57,7 @@ The loading of samples is done using a simple state machine looping over the lin
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[b]{0.45\linewidth}
+	\begin{subfigure}[b]{0.49\linewidth}
 		\begin{subfigure}[b]{\linewidth}
 			\includegraphics[width=\linewidth]{plots/data-distribution-full-fine.png}
 		\end{subfigure}
@@ -66,7 +66,7 @@ The loading of samples is done using a simple state machine looping over the lin
 		\end{subfigure}
 		\caption{without balancing}
 	\end{subfigure}
-	\begin{subfigure}[b]{0.45\linewidth}
+	\begin{subfigure}[b]{0.49\linewidth}
 		\begin{subfigure}[b]{\linewidth}
 			\includegraphics[width=\linewidth]{plots/data-distribution-limited-fine.png}
 		\end{subfigure}
@@ -104,7 +104,7 @@ The defining feature of \glspl{CNN} are their convolutional layers, mainly defin
 \subsubsection{Input Format}
 
 \begin{figure}
-	\includegraphics[width=\linewidth]{plots/cnn-encoding.png}
+	\includegraphics[width=\linewidth]{plots/cnn-encoding-proper.png}
 	\caption{Visualisation of net placement encoding procedure for \glspl{CNN}.}
 	\label{fig:cnn-encoding}
 \end{figure}
@@ -181,7 +181,7 @@ Furthermore, in order to keep the effort of training all \gls{CNN} candidates ma
 
 The performance is logged using TensorBoard\cite{tensorboard-web}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{savedmodel-web}, ready to be deployed to our adapted version of \gls{VPR}.
 
-Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model. Indeed, our \gls{CNN} models tend to overfit quickly, depending on the model complexity (see \ref{fig:cnn-train}). 
+Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model. Indeed, our \gls{CNN} models tend to overfit quickly, depending on the model complexity (see Figure \ref{fig:cnn-train}). 
 
 \subsection{\gls{RNN}}
 
@@ -190,12 +190,12 @@ Early stopping, with a patience of 4, and checkpointing are deployed to automati
 \subsubsection{Input Format}
 
 \begin{figure}
-	\includegraphics[width=\linewidth]{plots/rnn-encoding.png}
+	\includegraphics[width=\linewidth]{plots/rnn-encoding-proper.png}
 	\caption{Visualisation of net placement encoding procedure for \glspl{RNN}.}
 	\label{fig:rnn-encoding}
 \end{figure}
 
-As the \gls{RNN} accepts sequences of variable length as input data, we encode the terminal positions as a ordered list of coordinate pairs, as shown in \ref{fig:rnn-encoding}.
+As the \gls{RNN} accepts sequences of variable length as input data, we encode the terminal positions as a ordered list of coordinate pairs, as shown in Figure \ref{fig:rnn-encoding}.
 
 To support efficient training we scale our training data. As the distribution of the terminals inside their \gls{BB} is approximately uniform (based on the properties of the simulated annealing placer), we normalize the coordinates to the range [0,1] by dividing by the maximum of their \glspl{BB}' X and Y dimensions. 
 
@@ -205,38 +205,42 @@ As the scaling factor itself is not part of the input to the \gls{RNN}, it can o
 
 \subsubsection{Structure}\label{ch:rnn-design}
 
-
-
 \begin{figure}
 	\centering
 	\begin{subfigure}[b]{0.3\linewidth}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-3-lstm-2-dense.png}
 		\end{subfigure}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-2-lstm-2-dense.png}
+		\end{subfigure}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-1-lstm-2-dense.png}
+		\end{subfigure}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.3\linewidth}
+		\begin{subfigure}[b]{\linewidth}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-3-lstm-1-dense.png}
 		\end{subfigure}
 		\caption{3 lstm layers}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.3\linewidth}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
-		\end{subfigure}
-		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-2-lstm-1-dense.png}
 		\end{subfigure}
 		\caption{2 lstm layers}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.3\linewidth}
 		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
-		\end{subfigure}
-		\begin{subfigure}[b]{\linewidth}
-			\includegraphics[width=\linewidth]{plots/rnn-candidates-placeholder.png}
+			\includegraphics[width=\linewidth]{plots/rnn-candidates-1-lstm-1-dense.png}
 		\end{subfigure}
 		\caption{1 lstm layer}
 	\end{subfigure}
-	\caption{Graph structures of \gls{RNN} candidates (TODO placeholders...).}
+	\caption{Graph structures of \gls{RNN} candidates.}
 	\label{fig:rnn-structure-abstract}
 \end{figure}
 
@@ -294,11 +298,11 @@ The \glspl{NN} themselves are saved in the \gls{tf} SavedModel format, which fac
 	
 As the models are only used for inference, and will no longer be trained, we select not to include the optimizer in the saved model to save space.
 
-\subsection{\gls{tf} C API}
+\subsection{\gls{tf} C API}\label{ch:tf-c-compile}
 
 The \gls{tf} C API provides language bindings for C++ as well as plain C. The executable code itself is loaded dynamically from the \textit{tensorflow.dll} dynamic link library.
 
-However, it is not as well maintained as the Python library, and official releases are known often not to work. In our case, the precompiled dll was missing an entry point, so we needed to compile it from the source code. After fixing several incopatabilities and aquiring the necessary requirements, the compilation itself still took severel day, but succeeded eventually.
+However, it is not as well maintained as the Python library, and official releases are known often not to work. In our case, the precompiled dll was missing an entry point, so we needed to compile it from the source code. After fixing several incopatabilities and aquiring the necessary requirements, the compilation itself still took severel days, but succeeded eventually.
 
 \subsection{Compile Time Integration into \gls{VPR} Placer}
 

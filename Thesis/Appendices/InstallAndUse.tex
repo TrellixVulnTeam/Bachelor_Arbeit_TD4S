@@ -11,3 +11,77 @@
 %************************************************
 \glsresetall % Resets all acronyms to not used
 
+This Appendix covers the necessary interactions to deploy and use our project.
+
+\section{General Info}
+
+This project has been developed under Windows 10. While usage on Linux based systems should in general be possible, not all features/scripts have been explicitly tested.
+
+The required \gls{tf} version for the python project, found under \textit{[Project Root]/NeuronalNetworks/combined\_project/}, is \textit{2.0.0b1} (as stated in the \textit{requirements.txt}). Newer versions are available, but different versions of \gls{tf} are potentially incompatible, especially with regard to saved models. Therefore, to avoid problems that might remain unnoticed, we did not upgrade the version during the course of this project. 
+
+\section{Installation}
+
+The full code of this project is publicly available at GitHub\cite{this-project}. This also includes the necessary version (TODO VPR version) of the \gls{VTR} project for convenience (all external content is subject to its respective license, which might be more restrictive than the license of this project).
+
+\subsection{Code}
+
+In order to obtain all files necessary to use this project (except the \gls{tf} C library), a simple \textit{clone} of the git repository is sufficient. The \textit{master} branch contains the full functionality.
+
+A zip archive containing only the changes to the original \gls{VTR} project is also available. It can be patched over the appropriate version of \gls{VPR} by integrating the folder structures and replacing changed files already present in the original project.
+
+To use the python scripts, it is necessary to install the python modules listed in \textit{[Project Root]/NeuronalNetworks/combined\_project/requirements.txt}.
+
+\subsection{\gls{tf} C Library}
+
+Our modified version of \gls{VPR} is compiled against the \gls{tf} C headers (included in the git project), but requires the actual library at runtime for dynamic linking.
+
+Pre-built versions of this library are available in the official \gls{tf} releases. However, as mentioned in Chapter \ref{ch:tf-c-compile}, manual compiling of this library might be required.
+
+On windows, the \textit{tensorflow.dll} dynamic link library needs to be on the Path. If it is located in the correct subfolder of the \gls{VPR} project (\textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/lib/}), our evaluation python-scripts will automatically ensure this by adding that specific subfolder to the Path before executing \gls{VPR}.
+
+As the compiled \gls{tf} C library is too large for standard git (>\SI{100}{\mega\byte}), it is not included in the project repository. Instead, it is handed in together with this thesis in a zip file.
+
+\subsection{Trained Models, Evaluation Results and Misc Large Files}
+
+Similarly, pre-trained \glspl{NN}, the placement, routing and log files created during evaluation, \gls{NN} training data, and the remaining files too large for GitHub are packed into zip archives and delivered outside of the git repository.
+
+To add all these files to the project, it is sufficient to unpack the archives in the project root folder. The zip archives already contain the necessary folder structure to deploy the files to their correct locations inside the project.
+
+\section{Usage}
+
+Once correctly installed, our modified version of \gls{VPR} can be used exactly like the original version. However, the desired mode of operation has to be specified before compilation. This is done via a compile-time variable at the beginning of the main source code file of the \gls{VPR} Placer, \textit{[Project Root]/VPR\_Project/vpr/src/place/place.cpp}.
+
+\subsection{Compiling \gls{VPR}}
+
+Compiling \gls{VPR} usually is as easy as invoking the CMake build system. 
+
+However, required compiler modules might be incompatible with other installed software. We specifically needed to remove various versions of \gls{msvc}. Furthermore, the integrated build and run utility in our IDE of choice, JetBrains CLion, consistently fails with a cryptic linker error. However, manually invoking \textit{make vpr} in the root folder of the \gls{VTR} Project correctly compiles \gls{VPR} in all four modes (compiler used: cygwin gcc/g++).
+
+\subsection{Generating Training Data}
+
+In order to generate training data, \gls{VPR} has to be compiled in the appropriate mode. Executing the \gls{VPR} Placer on any circuit will now ask the user to input a valid absolute path to store the generated data in.
+
+During placement \gls{VPR} will now progressively log any temporary net placement produced, together with its \gls{BB} size, corrected \gls{HPWL} cost, and cost if routed using the Maze Router algorithm.
+
+As this process slows the placer down dramatically, it is not practical to wait for a whole placement attempt to finish. Instead, it can be terminated at any point, and the samples generated up to that point will be stored in a text file at the specified path.
+
+\subsection{Deploying a Trained \gls{NN}}
+
+Deploying a different trained \gls{NN} than our already deployed pre-trained models requires three actions. The model has to be saved in the \gls{tf} SavedModel format and respect our interface for \glspl{RNN} or \glspl{CNN}.
+
+First, the signature of the model has to be inspected using the \textit{saved\_model\_cli} tool included in \gls{tf} to acquire the name of the entry point used to pass data to the model. A tutorial for this process can be found at \cite{tf-inspect-savedmodel}.
+
+Then, this entry point name has to be specified in the appropriate compile time variable in \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/neural\_network.h}.
+
+Alternatively, it is possible to change the signature definition of a saved model to fit the pre-defined entry points \textit{serving\_default\_lstm\_renamed\_input} or \textit{serving\_default\_flatten\_8\_input}. An experimental implementation of this process, described and explained in \cite{rename-savedmodel}, is included in our project as \textit{[Project Root]/NeuronalNetworks/combined\_project/fix\_model\_signatures.py}. This script adjusts the signatures of all models created and saved in the default locations (\textit{[Project Root]/NeuronalNetworks/combined\_project/models/[specific subfolder]}) by our \gls{NN} training scripts.
+
+Finally, the saved model has to be copied to the correct location, \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/model\_[type]/}, where \textit{type} is either \textit{cnn} or \textit{rnn}.
+
+If an entry point definition in the \gls{VPR} source code has been changed, \gls{VPR} has to be compiled again. Otherwise, no recompilation is needed, as the appropriate model is dynamically loaded at run-time.
+
+\subsection{Running and Evaluating \gls{VPR}}
+
+We do not modify the external interface of \gls{VPR}. Therefore, running and evaluating \gls{VPR} manually or with additional tools does not require any changes once the desired mode (excluding training data generation) has been compiled.
+
+However, to simplify the process, we provide scripts to run the evaluations required for model selection as well as the final evaluation of different modes against each other. For these script to work, it is required to compile \gls{VPR} in each of the three modes \textit{reference}, \textit{cnn integration}, and \textit{rnn integration}. Each time, the produced \textit{vpr.exe} executable has to be renamed to \textit{vpr\_reference.exe}, \textit{vpr\_cnn.exe}, or \textit{vpr\_rnn.exe}, respectively. Our scripts then copy the appropriate executable for the mode to be evaluated, giving it the default name \textit{vpr.exe}, before calling \gls{VPR} with the arguments specific to that evaluation run.
+
