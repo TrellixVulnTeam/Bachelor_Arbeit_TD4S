@@ -5,17 +5,29 @@
 %*****************************************
 \glsresetall % Resets all acronyms to not used
 
-We begin by giving an overview of the technologies and methods used and their domains.
+This chapter provides an overview of the technologies and methods used and their domains.
 
-\section{Hardware High-Level Synthesis}
+\section{Hardware Synthesis}
 
-Hardware high-level synthesis is the process of automatically translating an abstract high-level description of a circuit's functionality into the actual specification of the hardware needed to realize it.
+Hardware synthesis is the process of automatically translating an abstract high-level description of a circuit's functionality into the actual specification of the hardware needed to realize it.
 
 \subsection{The VTR Project and VPR}
 
+\begin{figure}
+	\includegraphics[width=\linewidth]{plots/hardware-synthesis.png}
+	\caption{Typical hardware synthesis workflow from \gls{HDL} to specification of physical circuit. Source: \cite{hardware-synthesis-plot}.}
+	\label{fig:hardware-synthesis}
+\end{figure}
+
 The open-source \gls{VTR} project\cite{vtr8} provides a complete workflow of Verilog-to-Hardware translation for \gls{FPGA} architectures. It is targeted at research rather than production, and as such also includes various visualisation utilities and benchmarks of different sizes.
 
-The workflow consists of three separate subprojects which can be run in series, but also independently: Odin II performing synthesis of a Verilog description to a \gls{BLIF} netlist, the external ABC project developed at UC Berkeley\cite{ABC-web} performing logic optimization, and the \gls{VPR} project generating and analysing the final layout.
+This workflow, depicted in Figure \ref{fig:hardware-synthesis}, consists of three separate subprojects which can be run in series, but also independently: 
+
+\begin{itemize}
+	\item Odin II, performing synthesis of a Verilog description (a \gls{HDL}) to a \gls{BLIF} netlist
+	\item The external ABC project developed at UC Berkeley\cite{ABC-web}, performing logic optimization
+	\item And the \gls{VPR} project\cite{vpr-paper}, generating and analysing the final layout
+\end{itemize}
 
 As the name implies, \gls{VPR} performs placing and routing of the \gls{BLIF} netlist it receives as input, but also analyses the produced results concerning timing and resource consumption.
 
@@ -25,7 +37,7 @@ Netlists are a format of describing the logic of an abstract circuit, containing
 
 Blocks are hardware primitives like \glspl{LUT}, \gls{I/O} pads, or basic logic functions, which usually are units of fixed dimensions connecting to the circuit via terminals acting either as signal sources or sinks. In a Netlist, blocks do not have coordinates yet but are templates of the actual hardware components needed to perform the desired operation.
 
-A Net is the abstraction of wires connecting specific terminals of the blocks referenced by the net. Each net has a single signal source, the output terminal of some block, which it connects to at least one input terminal of another (or possibly the same) block, its sinks.
+A net is the abstraction of wires connecting specific terminals of the blocks referenced by the net. Each net has a single signal source, the output terminal of some block, which it connects to at least one input terminal of another (or possibly the same) block, its sinks.
 
 In conjunction, these describe the full logical signal paths of a circuit, fully defining its logical behaviour.
 
@@ -35,7 +47,7 @@ In conjunction, these describe the full logical signal paths of a circuit, fully
 
 Placement is the process of assigning physical locations and orientations to the blocks of a Netlist. While on \glspl{FPGA} the orientation of a block is usually limited by the properties of the available resources at each location, the location itself for each block can be chosen rather freely. However, it is the main task of Placement to choose placements intelligently, so that resource consumption is minimized and performance of the resulting physical circuit is maximized.
 
-The blocks need to be connected physically according to the logical connections listen in the Netlist. Therefore, placing connected blocks close to each other reduces both the consumption of limited wiring resources and signal delays, which impose a hard limit on the possible clock frequency of sequential logic.
+The blocks need to be connected physically according to the logical connections listed in the Netlist. Therefore, placing connected blocks close to each other reduces both the consumption of limited wiring resources and signal delays, which impose a hard limit on the possible clock frequency of sequential logic.
 
 In \gls{VPR}, the search for an optimal placement is conducted via a classical simulated annealing algorithm. Possible moves are the swapping of a block's position with another free or occupied valid position. The acceptance criterium of a move is the overall reduction of estimated wiring costs, and moves increasing this cost are accepted only with a certain variable probability.
 
@@ -63,7 +75,7 @@ For the local routing of a single net, the Maze-Router\cite{Maze-Router} algorit
 
 Estimating the wiring cost of a temporary placement is a central part of the \gls{VPR} Placer. The global wiring cost is computed as the sum of the wiring costs of each net.
 
-Here, the wiring cost is defined as the absolute distance of wiring required for each net. As the effects different nets have on each other are not known before routing the circuit, the wiring distance for each net is computed in isolation assuming abundant resources so any two points in the routing grid can be directly and minimally connected. Together with a uniform grid this results in the Manhattan-distance as the cost of the connection between two points.
+Here, the wiring cost is defined as the absolute distance of wiring required for each net. As the effects different nets have on each other are not known before routing the circuit, the wiring distance for each net is computed in isolation assuming abundant resources so any two points in the routing grid can be directly and minimally connected. Together with a uniform grid, this results in the Manhattan-distance as the cost of the connection between two points.
 
 However, computing the minimal rectilinear tree connecting the source of a net with all its sinks is an np-hard problem in the number of sinks called \gls{RSMT}.\cite{rsmt-complexity} Furthermore, the wiring cost computation is located at the innermost part of the simulated annealing algorithm used for Placement, which makes it highly runtime-critical.
 
@@ -87,17 +99,23 @@ The reason such a simple and possibly inaccurate estimator was chosen is its eff
 	\label{fig:wirelength-estimation-models}
 \end{figure}
 
-Other popular approaches for in-placement wirelength estimation are the popular star+ model, the clique model, \glspl{RMST}, and \glspl{RSMT}.\cite{star-plus-paper}
+Other popular approaches for in-placement wirelength estimation, as visualised in Figure \ref{fig:wirelength-estimation-models} are the popular star+ model, the clique model, \glspl{RMST}, and \glspl{RSMT}.\cite{star-plus-paper}
 
-While \gls{RSMT} provides the exact minimum possible wirelength, it is an np-hard problem and thus unsuited for in-placement estimation of iterative placers. \gls{RMST} is considerably faster than \gls{RSMT} and overestimates by 50\% at most\cite{rmst-quality}, it still exhibits a high complexity.
+While \gls{RSMT} provides the exact minimum possible wirelength, it is an np-hard problem and thus unsuited for in-placement estimation of iterative placers. \gls{RMST} is considerably faster than \gls{RSMT} and overestimates by 50\% at most\cite{rmst-quality}, but it still exhibits a high complexity.
 
-The clique model is in quality roughly equivalent as \gls{HPWL}\cite{star-plus-paper} while being more complex and therefore inferior.
+The clique model is in quality roughly equivalent to \gls{HPWL}\cite{star-plus-paper} while being more complex and therefore inferior.
 
 The star+ model, on the other hand, can be computed in constant time like \gls{HPWL} but outperforms it measurably. This model estimates the wirelength of a net as the sum of distances from each terminal to the geometric centre of the net. It, therefore, processes more information than the simple \gls{HPWL} model, while still enabling a highly efficient computation.\cite{star-plus-paper}
 
 \section{Neural Networks}
 
-Neural Networks are universal function approximators based on a network of linear combinations followed by non-linear activation functions. They are a group of \gls{ML} algorithms learning their target function by initially making random predictions and improving through the observed error or effect of their predictions.
+\begin{figure}
+	\includegraphics[width=\textwidth]{plots/artificial-neural-network.png}
+	\caption{Abstract schematic of a \gls{NN} depicting the information flow through a graph of artificial neurons. (source: \cite{artificial-neural-network-plot})}
+	\label{fig:artificial-neural-network}
+\end{figure}
+
+Neural Networks are universal function approximators based on a network of linear combinations followed by non-linear activation functions. The typical layout of this network can be seen in Figure \ref{fig:artificial-neural-network}. They are a group of \gls{ML} algorithms learning their target function by initially making random predictions and improving through the observed error or effect of their predictions.
 
 They usually consist of a layered structure of interconnected artificial neurons, essentially small units, which perform a linear combination of multiple inputs and produce a single output by adjusting that value through a non-linear activation function.
 
@@ -113,13 +131,32 @@ Classification is the prediction of a discrete class label, e.g. classifying ima
 
 \subsection{\glspl{CNN}}
 
-\glspl{CNN} are a special class of \glspl{NN}, containing convolutional layers, which essentially implement learnable sliding-window filters over the input tensor. 
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.47\linewidth}
+		\includegraphics[width=\textwidth]{plots/convolutional-layer_1.png}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.47\linewidth}
+		\includegraphics[width=\textwidth]{plots/convolutional-layer_2.png}
+	\end{subfigure}
+	\caption{Application of a sliding window filter to different locations of the input. (source: \cite{convolutional-layer-plot})}
+	\label{fig:convolutional-layer}
+\end{figure}
+
+\glspl{CNN} are a special class of \glspl{NN}, containing convolutional layers, which essentially implement learnable sliding-window filters over the input tensor. Figure \ref{fig:convolutional-layer} shows the application of such a filter to a sample input.
 
 With their inherent ability to detect localized structures, \glspl{CNN} perform exceptionally well on image processing, essentially outperforming any other general-purpose image processing algorithm.\cite{dl-vs-cv}\cite{cv-vs-dl}
 
 \subsection{\glspl{RNN}}
 
-\glspl{RNN} contain a feedback loop, breaking the strict one-way forward pass semantic of usual \glspl{NN}. This causes \glspl{RNN} to contain state, enabling them to process sequences of related inputs, creating a single prediction for a sequence of input tensors.
+\begin{figure}
+	\includegraphics[width=\textwidth]{plots/recurrent-layer.png}
+	\caption{Visualisation of the concept of \glspl{RNN}, feeding back the output of the current \textit{timestep} as input to the next one. (source: \cite{recurrent-layer-plot})}
+	\label{fig:recurrent-layer}
+\end{figure}
+
+\glspl{RNN} contain a feedback loop, as depicted in Figure \ref{fig:recurrent-layer}, breaking the strict one-way forward pass semantic of usual \glspl{NN}. This causes \glspl{RNN} to contain state, enabling them to process sequences of related inputs, creating a single prediction for a sequence of input tensors.
 
 \glspl{RNN} are usually used where the ordering of the input sequences contains relevant information, e.g. temporal sequences of sensor readings.
 
@@ -133,22 +170,22 @@ In general, \glspl{NN} are able to approximate arbitrarily complex target functi
 
 Therefore, we believe \glspl{NN} could be suited as a wiring cost estimator by predicting the wiring cost of the current placement of a net, receiving the coordinates of its terminals as inputs. 
 
-They are expected to produce vastly more accurate estimations than the \gls{HPWL} metric, close to the real optimal wiring cost. Although they will also take substantially more computational effort than \gls{HPWL}, we expect the increased accuracy will help the simulated annealing placement algorithm to correctly judge the effects of its moves, which is an essential part of the algorithm. We hope that this will increase the resulting overall placement quality enough to be able to outperform the unchanged \gls{VPR} on the quality/runtime trade-off, being able to produce higher quality results at same actual runtime, by adjusting the moves per temperature level, at least on part of the runtime domain.
+They are expected to produce vastly more accurate estimations than the \gls{HPWL} metric, close to the real optimal wiring cost. Although they will also take substantially more computational effort than \gls{HPWL}, the increased accuracy could help the simulated annealing placement algorithm to correctly judge the effects of its moves, which is an essential part of the algorithm. This might increase the resulting overall placement quality enough to be able to outperform the unchanged \gls{VPR} on the quality/runtime trade-off. This might enable it to produce higher quality results at the same actual runtime, by adjusting the moves per temperature level, at least on part of the runtime domain.
 
 \subsubsection{Target Function}
 
-Training a \gls{NN} using supervised learning requires training examples consisting of sample inputs and their expected prediction value, in our case terminal coordinates and the minimum wiring cost.
+Training a \gls{NN} using supervised learning requires training examples consisting of sample inputs and their expected prediction value, in this case terminal coordinates and the minimum wiring cost.
 
 However, there are two competing candidates for the minimum wiring cost of a net placement: The \gls{RSMT}, specifying the minimum possible wiring cost, and the length of the wiring tree computed by the Maze-Router algorithm\cite{Maze-Router}, specifying the minimum wiring cost achievable by the \gls{VPR} Router, which might be higher than the \gls{RSMT} cost.
 
-As our goal is to achieve optimal final results for the placed and routed circuit, we have to optimize the Placer to produce outputs optimal for the Router used, so the circuits can be routed efficiently. Therefore, we decided to use the cost computed using the Maze-Router algorithm, optimizing the placement for the routing algorithm present, not for a hypothetical ideal one.
+As the goal is to achieve optimal final results for the placed and routed circuit, the Placer has to be optimised to produce outputs optimal for the Router used, so the circuits can be routed efficiently. Therefore, the cost computed using the Maze-Router algorithm is used as the target function, optimizing the placement for the routing algorithm present, not for a hypothetical ideal one.
 
 \subsubsection{Related Work}
 
 The deployment of \gls{ML} to \gls{FPGA} hardware synthesis is still rare\cite{routability-estimator}, and we identified only a few publications closely related to our work. 
 
-While there is one paper seemingly covering the same topic as our work, it is hidden behind a paywall, and the accessible abstract does not disclose much useful information.\cite{doi:10.1142/S0218213098000202}
+While there is one paper seemingly covering the same topic as this thesis, it is hidden behind a paywall, and the accessible abstract does not disclose much useful information.\cite{doi:10.1142/S0218213098000202}
 
 In "Neural network based pre-placement wirelength estimation"\cite{pre-placement-estimation}, Liu et al. deploy \glspl{NN} to estimate wirelengths, however not on individual temporary net placements, but on whole circuits definitions.
 
-Although not related to \glspl{NN}, the contents of the star+ paper incidentally exhibit strong parallels to our work. The authors also develop an in-placement wirelength estimator and evaluate it by implementing it into the \gls{VPR} Placer. The evaluation process deployed by Xu et al. is similar to our own in many aspects but also contains important differences, as detailed in \ref{ch:evaluation}.
+Although not related to \glspl{NN}, the contents of the star+ paper incidentally exhibit strong parallels to the work in this thesis. The authors also develop an in-placement wirelength estimator and evaluate it by implementing it into the \gls{VPR} Placer. The evaluation process deployed by Xu et al. is similar to our own in many aspects but also contains important differences, as detailed in Chapter \ref{ch:evaluation}.

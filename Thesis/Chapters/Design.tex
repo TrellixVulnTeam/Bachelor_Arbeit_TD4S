@@ -19,7 +19,7 @@ The output is the wiring cost for wiring this net in isolation using the Maze-Ro
 
 \section{Neural Networks}
 
-We compare two different types of \glspl{NN} which are both suited to the problem at hand, namely \glspl{CNN} and \glspl{RNN}.
+This thesis compares two different types of \glspl{NN} which are both suited to the problem at hand, namely \glspl{CNN} and \glspl{RNN}.
 
 \subsection{\gls{CNN}}
 
@@ -37,21 +37,21 @@ The main disadvantages are the memory-inefficient encoding, the loss of ordering
 
 The encoding is an equivalent of a Bitmap, which is the most inefficient common image encoding in terms of memory requirement, as it contains no compression and has a fixed size given fixed dimensions.
 
-In order to reduce the memory overhead of this approach, we adapt it to relative placement positions inside the bounding box of each Net, instead of absolute positions on the \gls{FPGA} grid. This reduces the memory requirement of each sample from the maximum placement grid size to the maximum bounding box size of all considered Net placements.
+In order to reduce the memory overhead of this approach, it is adapted to relative placement positions inside the bounding box of each Net, instead of absolute positions on the \gls{FPGA} grid. This reduces the memory requirement of each sample from the maximum placement grid size to the maximum bounding box size of all considered Net placements.
 
 Furthermore, the ordering of the terminals inside a Net is lost. While the minimum possible wire length of a list of terminals is ordering invariant, the actual routing in \gls{VPR} is performed using the Maze-router, an ordering sensitive heuristic. Therefore, different internal orderings of the same list of terminal positions might produce routings of differing quality, and subsequently should be rated accordingly by the wire length estimation heuristic.
 
 Our assumption at this point is that the influence of the ordering is small enough, that \glspl{CNN} are still able to perform better than \gls{HPWL} on the accuracy/runtime trade-off.
 
-Finally, this approach is limited to a maximum grid, or rather Net placement bounding box, size. Any fixed size encoding can by design only represent problem instances up to a certain size. Therefore, any instance exceeding this limit can not be processed by our \gls{CNN}. Furthermore, as the maximum size (number of grid positions) linearly influences the computational effort for each prediction, it is impractical to simply set the limit so high an excess becomes highly unlikely.
+Finally, this approach is limited to a maximum grid, or rather Net placement bounding box, size. Any fixed size encoding can by design only represent problem instances up to a certain size. Therefore, any instance exceeding this limit can not be processed a \gls{CNN}. Furthermore, as the maximum size (number of grid positions) linearly influences the computational effort for each prediction, it is impractical to simply set the limit so high an excess becomes highly unlikely.
 
-Therefore, to be able to process any valid input, we need a fallback estimator for problem instances exceeding the limit. While an ensemble of \glspl{CNN} with increasing input dimensions could combat the computational effort for prediction, it would require lots of resources for training, and still defines an upper limit that might be exceeded. Thus, we decided to use a single \gls{CNN} able to process all commonly encountered Net placements on the \gls{VPR} benchmarks and to fall back to \gls{HPWL} for any placement exceeding this limit.
+Therefore, to be able to process any valid input, a fallback estimator for problem instances exceeding the limit is required. While an ensemble of \glspl{CNN} with increasing input dimensions could combat the computational effort for prediction, it would require lots of resources for training, and still defines an upper limit that might be exceeded. Thus, a single \gls{CNN} able to process all commonly encountered Net placements on the \gls{VPR} benchmarks was chosen, and any placement exceeding this limit will fall back to \gls{HPWL}.
 
 \subsection{\gls{RNN}}
 
 In \gls{VPR}, the placement of the Terminals in a Net is represented by an ordered list of coordinates. The length of this list equals the number of terminals in the Net and is, in theory, unbounded. Due to the ordering sensitivity of the problem, and the variable-length input sequences, \glspl{RNN} are inherently suited to this problem.
 
-We expect good results from this approach, as the computational structure of \glspl{RNN} mimics the process of sequentially adding a new terminal to the partial routing used in the Maze-router, which is the target function we are trying to approximate.
+This approach looks promising, as the computational structure of \glspl{RNN} mimics the process of sequentially adding a new terminal to the partial routing used in the Maze-router, which is the target function the \gls{NN} is trying to approximate.
 
 The computational effort of this approach scales linearly with the number of terminals in a Net but is expected to be lower than the quasi-constant effort of \glspl{CNN}, as the number of terminals is generally lower than the number of distinct placement positions in the Nets \gls{BB}, by the maximum of which the effort of our CNN approach is scaled.
 
@@ -63,6 +63,6 @@ The interface pre-processes the input (the terminal coordinates of a net), execu
 
 However, parts of the \gls{HPWL} implementation, namely \gls{BB} computation and updating, are kept to map and normalize the input.
 
-Thus, the actual cost computation part of the \gls{HPWL} implementation, which has constant runtime, is replaced with \gls{NN} inference, which generally has substantially higher runtime. However, it is expected to also yield substantially more accurate wire length estimations, hopefully improving the placement quality enough to make up for the increased computational effort.
+Thus, the actual cost computation part of the \gls{HPWL} implementation with constant runtime is replaced with \gls{NN} inference, which generally has substantially higher runtime. However, it is expected to also yield substantially more accurate wire length estimations, hopefully improving the placement quality enough to make up for the increased computational effort.
 
 

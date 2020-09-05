@@ -5,7 +5,7 @@
 %************************************************
 \glsresetall % Resets all acronyms to not used
 
-As this work consists of modifying an existing project, implementation details, like programming language, for part of this work are fixed. It is therefore divided into three largely independent parts:
+As this work consists of modifying an existing project, implementation details, e.g. programming language, for part of this work are fixed. It is therefore divided into three largely independent parts:
 
 \begin{itemize}
 	\item obtaining training data
@@ -13,11 +13,11 @@ As this work consists of modifying an existing project, implementation details, 
 	\item integrating the \glspl{NN} into \gls{VPR}
 \end{itemize}
 
-Although the \gls{VTR} project is implemented in C++, our \glspl{NN} are implemented and trained in Python for the convenience the various data processing libraries provide, and as our selected \gls{NN} framework, \gls{tf}, is primarily available for Python. The training data generation is implemented in C++ as an extension to the \gls{VPR} Placer. 
+Although the \gls{VTR} project is implemented in C++, the \glspl{NN} are implemented and trained in Python for the convenience the various data processing libraries provide, and as our selected \gls{NN} framework, \gls{tf}, is primarily available for Python. The training data generation is implemented in C++ as an extension to the \gls{VPR} Placer. 
 
 \section{Training Data}
 
-For supervised learning algorithms, representative training data is imperative to achieve a good fit of the target function. While it would be possible for our problem to randomly generate synthetic training data, this would generally incur a higher domain gap than real data. One reason for this would be possibly typical distributions of terminals on the grid, or the number of samples for each terminal count. Furthermore, capturing real data is easily possible, and, due to the digital nature of the domain, free of negative capturing effects.
+For supervised learning algorithms, representative training data is imperative to achieve a good fit of the target function. While, for this specific problem, it would be possible to randomly generate synthetic training data, this would generally incur a higher domain gap than real data. One reason for this would be possibly typical distributions of terminals on the grid, or the number of samples for each terminal count. Furthermore, capturing real data is easily possible and free of negative capturing effects due to the digital nature of the domain.
 
 \subsection{Generation}
 
@@ -31,13 +31,13 @@ One full placement run, however, produces more samples than would be practical t
 
 \subsubsection{Target Value Computation}
 
-Our choice of the target value for the training samples, the wiring cost for wiring a net in isolation using the Maze-Router, needs to be computed from the terminal coordinates of each net placement. While the Maze-Router is already implemented in the \gls{VPR} Router, it is not sufficiently isolated to be callable for a single placed net without significant overhead.
+The chosen target value for the training samples, the wiring cost for wiring a net in isolation using the Maze-Router, needs to be computed from the terminal coordinates of each net placement. While the Maze-Router is already implemented in the \gls{VPR} Router, it is not sufficiently isolated to be callable for a single placed net without significant overhead.
 
 Therefore, we implemented the Maze-Router algorithm ourselves, working with the \gls{VPR} internal data structures holding the nets and their temporary placements.
 
 \subsection{Format}
 
-Before logging a sample, this algorithm is called to obtain the true wiring cost we are trying to learn to predict. For each sample three lines of plaintext are written to a text file, containing all information necessary to reconstruct the relevant information about the temporary net placement:
+Before logging a sample, this algorithm is called to obtain the true wiring cost the \gls{NN} is trying to learn to predict. For each sample, three lines of plaintext are written to a text file, containing all information necessary to reconstruct the relevant information about the temporary net placement:
 
 \begin{itemize}
 	\item \gls{BB} size: X and Y dimensions of the \gls{BB} of the terminal coordinates (this value is only included for convenience and could be computed from the coordinates themselves)
@@ -79,15 +79,15 @@ The loading of samples is done using a simple state machine looping over the lin
 	\label{fig:data-hist}
 \end{figure}
 
-As can be seen in \ref{fig:data-hist}, the distribution of logged training samples over the net terminal counts is not only highly sparse, but also contains very high counts at certain positions.
+As can be seen in Figure \ref{fig:data-hist}, the distribution of logged training samples over the net terminal counts is not only highly sparse but also contains very high counts at certain positions.
 
 We decided to accept the sparsity, as it would only be avoidable with immense effort, e.g. by logging the placements of enough circuits until all counts are balanced, when using real instead of synthetic data. The \gls{NN} is expected to be able to generalize to unknown terminal counts once it is properly trained.
 
-The imbalance on the other hand initially caused our \glspl{RNN} to notably focus on correctly predicting the cost of net placements with certain terminal counts, while neglecting the remaining samples, thereby overfitting. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, it is highly circuit specific and hinders generalization.
+The imbalance, on the other hand, initially caused our \glspl{RNN} to notably focus on correctly predicting the cost of net placements with certain terminal counts, while neglecting the remaining samples, thereby overfitting. While this imbalance is also present in "real" data, and one could argue that this behaviour was intentional to minimize overall error, it is highly circuit-specific and hinders generalization.
 
 To that end, the samples per distinct terminal count were limited to a fixed maximum. This limit is set to 4000, which was chosen empirically to be both low enough to sufficiently balance the data, and high enough not to waste samples unnecessarily.
 
-Our \glspl{CNN}, encoding the data in a fixed size image irrespective of terminal count, are less affected by this and were therefore trained without terminal count balancing.
+Our \glspl{CNN}, encoding the data in a fixed size image irrespective of the terminal count, are less affected by this and were therefore trained without terminal count balancing.
 
 \section{Neural Networks}
 
@@ -99,7 +99,7 @@ The \glspl{NN} themselves are implemented as \gls{tf} 2.0 Keras models, both def
 
 \subsection{\gls{CNN}}
 
-The defining feature of \glspl{CNN} are their convolutional layers, mainly defined by the number and size of their filters, as well as the stride and input extension. The input is a multidimensional tensor, usually an image with one (greyscale) or three (rgb) channels.
+The defining feature of \glspl{CNN} are their convolutional layers, mainly defined by the number and size of their filters, as well as the stride and input extension. The input is a multidimensional tensor, usually an image with one (greyscale) or three (RGB) channels.
 
 \subsubsection{Input Format}
 
@@ -109,7 +109,7 @@ The defining feature of \glspl{CNN} are their convolutional layers, mainly defin
 	\label{fig:cnn-encoding}
 \end{figure}
 
-For our \glspl{CNN} the input coordinates have to be mapped to such an image. This is illustrated in \ref{fig:cnn-encoding}.
+For the \glspl{CNN} the input coordinates have to be mapped to such an image. This is illustrated in Figure \ref{fig:cnn-encoding}.
 
 First, the lower-left corner of their \gls{BB} is subtracted, which is known from the remaining part of the \gls{HPWL} implementation. This helps to reduce the maximum occurring coordinates.
 
@@ -143,7 +143,7 @@ The target value for each sample is the unscaled Maze-Router wiring cost, as thi
 
 To keep runtime small, the structure of our \glspl{CNN} is kept simple, with only few and small layers.
 
-Our general \gls{CNN} design, as illustrated in \ref{fig:cnn-structure-abstract}, consists of zero to two convolutional layers, followed by a flatten and one to two dense layers. As the last layer, however, is always a dense layer with a single neuron, to achieve regression of one target variable, and the flatten layer is parameter-less, this leaves one to three custom layers. 
+The general \gls{CNN} design, as illustrated in Figure \ref{fig:cnn-structure-abstract}, consists of zero to two convolutional layers, followed by a flatten and one to two dense layers. As the last layer, however, is always a dense layer with a single neuron, to achieve regression of one target variable, and the flatten layer is parameter-less, this leaves one to three custom layers. 
 
 The special case of zero convolutional layers reduces the network to a plain artificial \gls{NN}, consisting only of dense layers and one flatten layer, which does not perform any computation but only reshapes the input. As these network variants, however, use the same encoding, and thus the same pre- and post-processing, they are treated the same as the remaining \glspl{CNN}.
 
@@ -171,21 +171,21 @@ The filter size of the convolutional layers can be 3x3 or 7x7, but is constant w
 	\label{fig:cnn-train}
 \end{figure}
 
-For this network, we use the standard training loop by calling the \textit{fit(...)} method of the \gls{tf} model, specifying training and validation data as well as number of epochs and batch size.
+For this network, the standard training loop invoked by calling the \textit{fit(...)} method of the \gls{tf} model is used, specifying training and validation data as well as number of epochs and batch size.
 
-However, as using images to represent coordinates is an extremely inefficient encoding, and we have many samples, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, we prepared the samples as \textit{tfrecord} files stored on disk, each holding 1.000 samples, and pass a generator to the fit method instead of the actual samples.
+However, as using images to represent coordinates is an extremely inefficient encoding, and the training set holds many samples, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, the samples are prepared as \textit{tfrecord} files stored on disk, each holding 1.000 samples, and a generator is passed to the fit method instead of the actual samples.
 
-This generator (a slightly adapted version of the one used in a public project\cite{tfrecord-project-web}) pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training, but introduces an additional bottleneck, which causes the CPU utilization to drop.
+This generator (a slightly adapted version of the one used in a public project\cite{tfrecord-project-web}) pre-loads several such files and shuffles the samples both externally and internally for a randomized ordering. This significantly reduces memory usage during training but introduces an additional bottleneck, which causes the CPU utilization to drop.
 
-Furthermore, in order to keep the effort of training all \gls{CNN} candidates manageable, the dataset was artificially limited to 200.000 samples.
+Furthermore, to keep the effort of training all \gls{CNN} candidates manageable, the dataset was artificially limited to 200.000 samples.
 
-The performance is logged using TensorBoard\cite{tensorboard-web}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{savedmodel-web}, ready to be deployed to our adapted version of \gls{VPR}.
+The performance is logged using TensorBoard\cite{tensorboard-web}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{savedmodel-web}, ready to be deployed to the adapted version of \gls{VPR}.
 
 Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model. Indeed, our \gls{CNN} models tend to overfit quickly, depending on the model complexity (see Figure \ref{fig:cnn-train}). 
 
 \subsection{\gls{RNN}}
 
-\glspl{RNN} are defined by the presence of recurrent layers, which feed some information back to their input, establishing a state in the prediction operation. This state allows them to remember former inputs and thus to process sequences instead of only single tensors. Thus they can process inputs of variable size, typically with one not strictly defined input dimension.
+\glspl{RNN} are defined by the presence of recurrent layers, which feed some information back to their input, establishing a state in the prediction operation. This state allows them to remember former inputs and thus to process sequences instead of only single tensors. This enables them to process inputs of variable size, typically with one not strictly defined input dimension.
 
 \subsubsection{Input Format}
 
@@ -195,13 +195,13 @@ Early stopping, with a patience of 4, and checkpointing are deployed to automati
 	\label{fig:rnn-encoding}
 \end{figure}
 
-As the \gls{RNN} accepts sequences of variable length as input data, we encode the terminal positions as a ordered list of coordinate pairs, as shown in Figure \ref{fig:rnn-encoding}.
+As the \gls{RNN} accepts sequences of variable length as input data, the terminal positions are encoded as an ordered list of coordinate pairs, as shown in Figure \ref{fig:rnn-encoding}.
 
-To support efficient training we scale our training data. As the distribution of the terminals inside their \gls{BB} is approximately uniform (based on the properties of the simulated annealing placer), we normalize the coordinates to the range [0,1] by dividing by the maximum of their \glspl{BB}' X and Y dimensions. 
+To support efficient training, scaling is applied to the training data. The distribution of the terminals inside their \gls{BB} is approximately uniform (based on the properties of the simulated annealing placer). Therefore, the coordinates are normalized to the range [0,1] by dividing by the maximum of their \glspl{BB}' X and Y dimensions. 
 
 In the Maze-Router, all distances are computed using the Manhattan metric, and the result of the algorithm is a linear combination of distances. Therefore, linear scaling of the input values does not require recomputing the expected result, as the original result can simply be scaled using the same factor used when scaling the inputs.
 
-As the scaling factor itself is not part of the input to the \gls{RNN}, it can only learn to predict the result of the scaled problem. Therefore, we need to post process the predicted output in our adapted \gls{VPR} implementation by rescaling it to the original magnitude using the inverse of the scaling factor of the inputs.
+As the scaling factor itself is not part of the input to the \gls{RNN}, it can only learn to predict the result of the scaled problem. Therefore, the predicted output requires post-processing in the adapted \gls{VPR} implementation. This is achieved by rescaling it to the original magnitude using the inverse of the scaling factor of the inputs.
 
 \subsubsection{Structure}\label{ch:rnn-design}
 
@@ -244,7 +244,7 @@ As the scaling factor itself is not part of the input to the \gls{RNN}, it can o
 	\label{fig:rnn-structure-abstract}
 \end{figure}
 
-Similarly to the \gls{CNN} structure, our \glspl{RNN} are composed of \gls{LSTM} layers followed by dense layers (see \ref{fig:rnn-structure-abstract}). However, each \gls{RNN} has to contain at least one \gls{LSTM} layer, as the last \gls{LSTM} layer encodes the variable length sequences into fixed size tensors that can be processed by the following dense layers.
+Similarly to the \gls{CNN} structure, our \glspl{RNN} are composed of \gls{LSTM} layers followed by dense layers (see Figure \ref{fig:rnn-structure-abstract}). However, each \gls{RNN} has to contain at least one \gls{LSTM} layer, as the last \gls{LSTM} layer encodes the variable length sequences into fixed-size tensors that can be processed by the following dense layers.
 
 Thus, one to three \gls{LSTM} layers are followed by one or two dense layers, the last dense layer again being the fixed one-neuron output layer. Here, the neuron count is specified for both dense and \gls{LSTM} layers. The three patterns \textit{increasing}, \textit{decreasing}, and \textit{bloating} control the distribution of neurons over the layers, de- or increasing in steps of 4. \textit{Bloating} describes an increasing count within the \gls{LSTM} part of the network, and decreasing in the following dense layers.
 
@@ -266,53 +266,59 @@ Thus, one to three \gls{LSTM} layers are followed by one or two dense layers, th
 	\label{fig:rnn-training}
 \end{figure}
 
-Although \glspl{RNN} generally support variable length input sequences, the implementation behind \gls{tf} imposes a limit on this: Input sequences within the same batch of samples are required to have uniform sequence length.
+Although \glspl{RNN} generally support variable-length input sequences, the implementation behind \gls{tf} imposes a limit on this: Input sequences within the same batch of samples are required to have uniform sequence length.
 
 The standard \textit{fit(...)} method, however, only allows the user to specify the training data and batch size, but not to pass predefined batches.
 
-As being able to predict the wiring cost with minimal preprocessing overhead is was the primary reason for choosing \glspl{RNN}, and a network trained only on samples padded to a common size would be unable to accurately predict on unpadded sequences, we implemented a custom training loop. This enables us to train on variably sized samples, by manually defining the batches.
+Being able to predict the wiring cost with minimal preprocessing overhead was the primary reason for choosing \glspl{RNN}. Furthermore, a network trained only on samples padded to a common size would be unable to accurately predict on unpadded sequences. Therefore, we implemented a custom training loop. This enables us to train on variably sized samples, by manually defining the batches.
 
-Training with a batch size of 1, also called \textit{online learning}, would enable us to train on a sequence of samples with fully randomized ordering. However, this approach is generally known to not to converge to the same quality of or as stable results as minibatch learning, although being able to converge faster, i.e. on fewer samples. The runtime of the trained network, however, remains the same. As we are interested in getting as accurate predictions as possible for as little computation time as possible, and we have an abundance of training samples, we stick with minibatch learning.
+Training with a batch size of 1, also called \textit{online learning}, would enable us to train on a sequence of samples with fully randomized ordering. However, this approach is generally known to not to converge to the same quality of or as stable results as minibatch learning, although being able to converge faster, i.e. on fewer samples. The runtime of the trained network, however, remains the same. As we are interested in getting as accurate predictions as possible for as little computation time as possible, and training samples are available in abundance, minibatch learning is chosen over online learning.
 
-For this, we model epochs by manually looping over the epoch count, and train on each batch separately using the \textit{fit()} method. We do not specify evaluation samples in the \textit{fit} calls, as the evaluation should only be done at the end of each epoch. To this end, we predict the wiring cost for each of the evaluation samples, and compute the metric score manually using the difference to the known true values.
+For this, epochs are modelled by manually looping over the epoch count, and training is performed separately on each batch using the \textit{fit()} method. Evaluation samples are not specified in the \textit{fit} calls, as the evaluation should only be done at the end of each epoch. To this end, the wiring cost for each of the evaluation samples is predicted manually, and the metric score is computed using the differences to the known true values.
 
 The separation of training samples into batches is done only once in the beginning by sorting the samples by length, selecting consecutive ranges of samples with the same length as batches, and dropping the last non-full batch, if present.
 
-To ensure a randomized order while training, we shuffle the batches both externally and internally each epoch, but we do not shuffle across batch borders for simplicity. We believe this to result in a sufficiently randomized ordering for efficient training.
+To ensure a randomized order while training, batches are shuffled both externally and internally each epoch, but, for simplicity, not across batch borders. This procedure is deemed to result in a sufficiently randomized ordering for efficient training.
 
-Due to the custom training loop, the training of our \gls{RNN} model is not supported for supervision using TensorBoard. Therefore, we implemented simple logging and visualization to help in debugging and model selection.
+Due to the custom training loop, the training of these \gls{RNN} model is not supported for supervision using TensorBoard due to the custom training loop. Therefore, simple logging and visualization are implemented manually to help in debugging and model selection.
 
-\ref{fig:rnn-training} shows the training histories of two different \glspl{RNN}. While \ref{fig:rnn-training-overfit} reaches higher performance due to a higher number of trainable parameters, it does not converge as smoothly as \ref{fig:rnn-training-simple}, which, due to its simple structure, can only achieve a rough fit. The reason for the sharp spikes in both training and evaluation error can easily be explained by taking a look at \ref{fig:rnn-training-individual}. This shows the individual errors on samples of specific terminal counts. It can be observed that such a sharp drop in performance is usually caused by the model trying to lower the error on samples with high terminal counts, probably by adjusting predictions generally upwards, which causes high error on samples with low terminal counts. In the following epoch the model usually rectifies its mistake.
+\begin{figure}
+	\includegraphics[width=\linewidth]{plots/rnn-encoding-proper.png}
+	\caption{TODO plot. Individual validation error histories for different terminal counts. Error on high and low terminal counts partially counteracting. Model \textit{3\_lstm\_layers\_2\_dense\_layers\_inflating}.}
+	\label{fig:rnn-training-individual}
+\end{figure}
+
+Figure \ref{fig:rnn-training} shows the training histories of two different \glspl{RNN}. While \ref{fig:rnn-training-overfit} reaches higher performance due to a higher number of trainable parameters, it does not converge as smoothly as \ref{fig:rnn-training-simple}, which, due to its simple structure, can only achieve a rough fit. The reason for the sharp spikes in both training and evaluation error can be explained by taking a look at Figure \ref{fig:rnn-training-individual}. This shows the individual errors on samples of specific terminal counts. It can be observed that such a sharp drop in performance is usually caused by the model trying to lower the error on samples with high terminal counts, probably by adjusting predictions generally upwards, which causes high error on samples with low terminal counts. In the following epoch, the model usually rectifies its mistake.
 
 Another interesting observation is the fact that evaluation error frequently drops below training error, which seems to imply the model is better in predicting on unknown data than it is on known samples. This, however, is due to the way error computation is implemented in the \gls{tf} framework\cite{keras-faq-web}. The training error of an epoch is computed as the mean of the training error on all batches at the point they are used for training. Therefore, the error on the first batches is computed in a different network state than the error on the later batches. As the model usually improves during an epoch, this causes the training error to be higher than expected. Similarly, a decrease in overall performance might appear as overfitting due to validation error rising faster than the training error. The red bar in the \gls{RNN} training history plots shows the expected \textit{reference train error} after the last epoch.
 
-Like our \gls{CNN}, the trained model is saved and can be deployed analogously. However, due to the custom training loop, early stopping and checkpointing are implemented explicitly, as the predefined callbacks can not be used in this scenario.
+Like the \glspl{CNN}, the trained model is saved and can be deployed analogously. However, due to the custom training loop, early stopping and checkpointing are implemented explicitly, as the predefined callbacks can not be used in this scenario.
 
 \section{Integration}
 
-For integration of our \glspl{NN} into \gls{VPR}, which is implemented in C++, we modify the Placer in the central \textit{place.cpp} module. We implement an interface to our \glspl{NN} as an abstract class calling the \gls{NN} inference, implemented by a \gls{CNN} wrapper and a \gls{RNN} wrapper, performing model specific pre- and post-processing.
+For the integration of the \glspl{NN} into \gls{VPR}, which is implemented in C++, the Placer is modified in the central \textit{place.cpp} module. The interface to our \glspl{NN} is implemented as an abstract class calling the \gls{NN} inference, implemented by a \gls{CNN} wrapper and an \gls{RNN} wrapper, performing model-specific pre- and post-processing.
 
 \subsection{\gls{tf} SavedModel}
 
-The \glspl{NN} themselves are saved in the \gls{tf} SavedModel format, which faciliates portability across language bindings of the \gls{tf} framework. 
+The \glspl{NN} themselves are saved in the \gls{tf} SavedModel format, which facilitates portability across language bindings of the \gls{tf} framework. 
 	
-As the models are only used for inference, and will no longer be trained, we select not to include the optimizer in the saved model to save space.
+As the models are only used for inference, and will no longer be trained, the optimizer is not included in the saved model to save space.
 
 \subsection{\gls{tf} C API}\label{ch:tf-c-compile}
 
 The \gls{tf} C API provides language bindings for C++ as well as plain C. The executable code itself is loaded dynamically from the \textit{tensorflow.dll} dynamic link library.
 
-However, it is not as well maintained as the Python library, and official releases are known often not to work. In our case, the precompiled dll was missing an entry point, so we needed to compile it from the source code. After fixing several incopatabilities and aquiring the necessary requirements, the compilation itself still took severel days, but succeeded eventually.
+However, it is not as well maintained as the Python library, and official releases are known often not to work. In our case, the pre-compiled \gls{dll} was missing an entry point, so we had to compile it from the source code. After fixing several incompatibilities and acquiring the necessary requirements, the compilation itself still took several days but succeeded eventually.
 
 \subsection{Compile Time Integration into \gls{VPR} Placer}
 
-As our modifications are located at the most performance-critical part of the \gls{VPR} Placer, we opted for compile time selection of operation mode to avoid introducing unnecessary control flow. 
+Most modifications, specifically the \gls{NN} inferences, are located at the most performance-critical part of the \gls{VPR} Placer. Therefore, compile-time selection of the operation mode was chosen to avoid introducing unnecessary control flow. 
 
-We specified a compile time variable for four possible modes of operation: 
+A compile-time variable specifies four possible modes of operation: 
 
 \begin{itemize}
 	\item unchanged \gls{VPR}
 	\item training data generation, writing all temporary net placements to a text file
-	\item \gls{RNN} integration, replacing \gls{HPWL} with our \gls{RNN} interface for all nets with more than 3 terminals
-	\item \gls{CNN} integration, replacing \gls{HPWL} with our \gls{CNN} interface for all nets with more than 3 terminals and placements not exceeding the hard limit
+	\item \gls{RNN} integration, replacing \gls{HPWL} with the \gls{RNN} interface for all nets with more than 3 terminals
+	\item \gls{CNN} integration, replacing \gls{HPWL} with the \gls{CNN} interface for all nets with more than 3 terminals and placements not exceeding the hard limit
 \end{itemize}

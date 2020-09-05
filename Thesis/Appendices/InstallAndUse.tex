@@ -15,17 +15,17 @@ This Appendix covers the necessary interactions to deploy and use our project.
 
 \section{General Info}
 
-This project has been developed under Windows 10. While usage on Linux based systems should in general be possible, not all features/scripts have been explicitly tested.
+This project has been developed under Windows 10. While usage on Linux based systems should, in general, be possible, not all features/scripts have been explicitly tested.
 
-The required \gls{tf} version for the python project, found under \textit{[Project Root]/NeuronalNetworks/combined\_project/}, is \textit{2.0.0b1} (as stated in the \textit{requirements.txt}). Newer versions are available, but different versions of \gls{tf} are potentially incompatible, especially with regard to saved models. Therefore, to avoid problems that might remain unnoticed, we did not upgrade the version during the course of this project. 
+The required \gls{tf} version for the python project, found under \textit{[Project Root]/NeuronalNetworks/combined\_project/}, is \textit{2.0.0b1} (as stated in the \textit{requirements.txt}). Newer versions are available, but different versions of \gls{tf} are potentially incompatible, especially concerning saved models. Therefore, to avoid problems that might remain unnoticed, we did not upgrade the version during the course of this project. 
 
 \section{Installation}
 
-The full code of this project is publicly available at GitHub\cite{this-project}. This also includes the necessary version (TODO VPR version) of the \gls{VTR} project for convenience (all external content is subject to its respective license, which might be more restrictive than the license of this project).
+The full code of this project is publicly available at GitHub\cite{this-project}. This also includes the necessary version (commit hash 0a923bf) of the \gls{VTR} project for convenience (all external content is subject to its respective license, which might be more restrictive than the license of this project).
 
 \subsection{Code}
 
-In order to obtain all files necessary to use this project (except the \gls{tf} C library), a simple \textit{clone} of the git repository is sufficient. The \textit{master} branch contains the full functionality.
+To obtain all files necessary to use this project (except the \gls{tf} C library), a simple \textit{clone} of the git repository is sufficient. The \textit{master} branch contains the full functionality.
 
 A zip archive containing only the changes to the original \gls{VTR} project is also available. It can be patched over the appropriate version of \gls{VPR} by integrating the folder structures and replacing changed files already present in the original project.
 
@@ -43,7 +43,7 @@ As the compiled \gls{tf} C library is too large for standard git (>\SI{100}{\meg
 
 \subsection{Trained Models, Evaluation Results and Misc Large Files}
 
-Similarly, pre-trained \glspl{NN}, the placement, routing and log files created during evaluation, \gls{NN} training data, and the remaining files too large for GitHub are packed into zip archives and delivered outside of the git repository.
+Similarly, pre-trained \glspl{NN}, the placement, routing and log files created during the evaluation, \gls{NN} training data, and the remaining files too large for GitHub are packed into zip archives and delivered outside of the git repository.
 
 To add all these files to the project, it is sufficient to unpack the archives in the project root folder. The zip archives already contain the necessary folder structure to deploy the files to their correct locations inside the project.
 
@@ -61,7 +61,7 @@ However, required compiler modules might be incompatible with other installed so
 
 In order to generate training data, \gls{VPR} has to be compiled in the appropriate mode. Executing the \gls{VPR} Placer on any circuit will now ask the user to input a valid absolute path to store the generated data in.
 
-During placement \gls{VPR} will now progressively log any temporary net placement produced, together with its \gls{BB} size, corrected \gls{HPWL} cost, and cost if routed using the Maze Router algorithm.
+During placement, \gls{VPR} will now progressively log any temporary net placement produced, together with its \gls{BB} size, corrected \gls{HPWL} cost, and cost if routed using the Maze Router algorithm.
 
 As this process slows the placer down dramatically, it is not practical to wait for a whole placement attempt to finish. Instead, it can be terminated at any point, and the samples generated up to that point will be stored in a text file at the specified path.
 
@@ -71,9 +71,9 @@ Deploying a different trained \gls{NN} than our already deployed pre-trained mod
 
 First, the signature of the model has to be inspected using the \textit{saved\_model\_cli} tool included in \gls{tf} to acquire the name of the entry point used to pass data to the model. A tutorial for this process can be found at \cite{tf-inspect-savedmodel}.
 
-Then, this entry point name has to be specified in the appropriate compile time variable in \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/neural\_network.h}.
+Then, this entry point name has to be specified in the appropriate compile-time variable in \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/neural\_network.h}.
 
-Alternatively, it is possible to change the signature definition of a saved model to fit the pre-defined entry points \textit{serving\_default\_lstm\_renamed\_input} or \textit{serving\_default\_flatten\_8\_input}. An experimental implementation of this process, described and explained in \cite{rename-savedmodel}, is included in our project as \textit{[Project Root]/NeuronalNetworks/combined\_project/fix\_model\_signatures.py}. This script adjusts the signatures of all models created and saved in the default locations (\textit{[Project Root]/NeuronalNetworks/combined\_project/models/[specific subfolder]}) by our \gls{NN} training scripts.
+Alternatively, it is possible to change the signature definition of a saved model to fit the predefined entry points \textit{serving\_default\_lstm\_renamed\_input} or \textit{serving\_default\_flatten\_8\_input}. An experimental implementation of this process, described and explained in \cite{rename-savedmodel}, is included in our project as \textit{[Project Root]/NeuronalNetworks/combined\_project/fix\_model\_signatures.py}. This script adjusts the signatures of all models created and saved in the default locations (\textit{[Project Root]/NeuronalNetworks/combined\_project/models/[specific subfolder]}) by our \gls{NN} training scripts.
 
 Finally, the saved model has to be copied to the correct location, \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/model\_[type]/}, where \textit{type} is either \textit{cnn} or \textit{rnn}.
 
@@ -83,5 +83,5 @@ If an entry point definition in the \gls{VPR} source code has been changed, \gls
 
 We do not modify the external interface of \gls{VPR}. Therefore, running and evaluating \gls{VPR} manually or with additional tools does not require any changes once the desired mode (excluding training data generation) has been compiled.
 
-However, to simplify the process, we provide scripts to run the evaluations required for model selection as well as the final evaluation of different modes against each other. For these script to work, it is required to compile \gls{VPR} in each of the three modes \textit{reference}, \textit{cnn integration}, and \textit{rnn integration}. Each time, the produced \textit{vpr.exe} executable has to be renamed to \textit{vpr\_reference.exe}, \textit{vpr\_cnn.exe}, or \textit{vpr\_rnn.exe}, respectively. Our scripts then copy the appropriate executable for the mode to be evaluated, giving it the default name \textit{vpr.exe}, before calling \gls{VPR} with the arguments specific to that evaluation run.
+However, to simplify the process, we provide scripts to run the evaluations required for model selection as well as the final evaluation of different modes against each other. For these scripts to work, it is required to compile \gls{VPR} in each of the three modes \textit{reference}, \textit{cnn integration}, and \textit{rnn integration}. Each time, the produced \textit{vpr.exe} executable has to be renamed to \textit{vpr\_reference.exe}, \textit{vpr\_cnn.exe}, or \textit{vpr\_rnn.exe}, respectively. Our scripts then copy the appropriate executable for the mode to be evaluated, giving it the default name \textit{vpr.exe}, before calling \gls{VPR} with the arguments specific to that evaluation run.
 
