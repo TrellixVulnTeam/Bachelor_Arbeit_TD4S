@@ -2,7 +2,7 @@
 // Created by 01100 on 15/08/2020.
 //
 
-#define DEBUG_NN 0
+/// enables interactive debugging of NN integration (pauses and prompts to continue)
 #define DEBUG_NN_INTERACTIVE 0
 
 #ifndef VTR_NEURAL_NETWORK_H
@@ -16,32 +16,30 @@
 
 #include "tensorflow/c/c_api.h"
 
-//TODO remove unused imports
-
-#include "vtr_assert.h"
-#include "vtr_log.h"
-#include "vtr_util.h"
-#include "vtr_random.h"
+//#include "vtr_assert.h"
+//#include "vtr_log.h"
+//#include "vtr_util.h"
+//#include "vtr_random.h"
 
 #include "vpr_types.h"
-#include "vpr_error.h"
-#include "vpr_utils.h"
+//#include "vpr_error.h"
+//#include "vpr_utils.h"
 
 #include "globals.h"
 #include "place.h"
-#include "read_place.h"
-#include "draw.h"
-#include "place_and_route.h"
-#include "net_delay.h"
-#include "timing_place_lookup.h"
-#include "timing_place.h"
-#include "read_xml_arch_file.h"
-#include "echo_files.h"
-#include "vpr_utils.h"
-#include "place_macro.h"
-#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
-#include "place_util.h"
-#include "place_delay_model.h"
+//#include "read_place.h"
+//#include "draw.h"
+//#include "place_and_route.h"
+//#include "net_delay.h"
+//#include "timing_place_lookup.h"
+//#include "timing_place.h"
+//#include "read_xml_arch_file.h"
+//#include "echo_files.h"
+//#include "vpr_utils.h"
+//#include "place_macro.h"
+//#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
+//#include "place_util.h"
+//#include "place_delay_model.h"
 
 #define CNN_INPUT_GRID_SIZE 64
 #define LSTM_ENTRY_POINT "serving_default_lstm_renamed_input"
@@ -63,7 +61,7 @@ public:
     /// \return if terminal count <= 3: -1; else: the predicted wiring cost if prediction succeeded, -1 else
     float predict_wiring_cost(ClusterNetId net_id, t_bb* bbptr);
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     /// debug method to test NN integration. generates a minimal sample of already mapped coordinates and directly
     /// calls encode_and_predict(...)
     /// \return a positive value if prediction succeeded
@@ -121,7 +119,7 @@ private:
 class LSTM: public TfModelInterface {
 public:
     LSTM();
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     float debug() override;
 #endif
 protected:
@@ -134,7 +132,7 @@ class CNN: public TfModelInterface {
 public:
     CNN();
     ~CNN();
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     float debug() override;
 #endif
 protected:

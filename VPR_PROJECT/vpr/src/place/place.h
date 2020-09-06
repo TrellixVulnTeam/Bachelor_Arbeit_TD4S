@@ -1,6 +1,18 @@
 #ifndef VPR_PLACE_H
 #define VPR_PLACE_H
 
+/*
+ * compile-time switch to choose the mode of operation:
+ * 0: is legacy = unchanged code
+ * 1: is training data generation: logging of all tested net placements with wiring cost into text file
+ * 2: is unused
+ * 3: is ml_integration LSTM = wiring cost estimation via LSTM NN, includes features of reference
+ * 4: is ml_integration CNN = wiring cost estimation via CNN NN, includes features of reference
+ */
+#define MODE 1
+/// enables debugging of NN integration and training data generation
+#define DEBUG_NN_INTEGRATION 1
+
 #include "vpr_types.h"
 void try_place(t_placer_opts placer_opts,
 		t_annealing_sched annealing_sched,

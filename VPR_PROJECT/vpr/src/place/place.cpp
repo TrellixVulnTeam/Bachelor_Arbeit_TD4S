@@ -1,13 +1,3 @@
-/*
- * compile-time switch to choose the mode of operation:
- * 0: is legacy = unchanged code
- * 1: is training data generation: logging of all tested net placements with wiring cost into text file
- * 2: is reference = semantically unchanged code with performance logging of wiring cost compuation
- * 3: is ml_integration LSTM = wiring cost estimation via LSTM NN, includes features of reference
- * 4: is ml_integration CNN = wiring cost estimation via CNN NN, includes features of reference
- */
-#define MODE 4
-
 #include <cstdio>
 #include <cmath>
 #include <memory>
@@ -2342,7 +2332,7 @@ static float get_net_cost(ClusterNetId net_id, t_bb *bbptr) {
 
 #if MODE == 3 || MODE == 4 // cost computation using NN
 
-    double cost_predicted_by_nn = model->predict_wiring_cost(net_id, bbptr);
+    float cost_predicted_by_nn = model->predict_wiring_cost(net_id, bbptr);
 
     if(cost_predicted_by_nn >= 0) // return cost if prediction succeeded
         return cost_predicted_by_nn;

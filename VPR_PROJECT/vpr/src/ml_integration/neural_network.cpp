@@ -8,7 +8,7 @@ void NoOpDeallocator(void* data, size_t a, void* b) {}
 
 void TfModelInterface::init(const char *saved_model_dir, const char *nn_input_entry_point) {
     //********* Read model
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     printf("hello world.\n");
 #endif
 
@@ -20,7 +20,7 @@ void TfModelInterface::init(const char *saved_model_dir, const char *nn_input_en
     const char *tags = "serve";
     int ntags = 1;
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     printf("trying to load model.\n");
 #endif
 
@@ -48,7 +48,7 @@ void TfModelInterface::init(const char *saved_model_dir, const char *nn_input_en
     Session = TF_LoadSessionFromSavedModel(SessionOpts, RunOpts, absolute_model_path, &tags, ntags,
                                            Graph, nullptr, Status);
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     if (TF_GetCode(Status) == TF_OK) {
         printf("TF_LoadSessionFromSavedModel OK\n");
     } else {
@@ -62,7 +62,7 @@ void TfModelInterface::init(const char *saved_model_dir, const char *nn_input_en
     Input = static_cast<TF_Output *>(malloc(sizeof(TF_Output) * NumInputs));
     TF_Output t0 = {TF_GraphOperationByName(Graph, nn_input_entry_point), 0};
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     if (t0.oper == nullptr) {
         printf("ERROR: Failed TF_GraphOperationByName ");
         printf("%s", nn_input_entry_point);
@@ -83,7 +83,7 @@ void TfModelInterface::init(const char *saved_model_dir, const char *nn_input_en
     Output = static_cast<TF_Output *>(malloc(sizeof(TF_Output) * NumOutputs));
     TF_Output t2 = {TF_GraphOperationByName(Graph, "StatefulPartitionedCall"), 0};
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     if (t2.oper == nullptr)
         printf("ERROR: Failed TF_GraphOperationByName StatefulPartitionedCall\n");
     else
@@ -96,7 +96,7 @@ void TfModelInterface::init(const char *saved_model_dir, const char *nn_input_en
     // allocate actual output tensor
     OutputValues = (TF_Tensor **) malloc(sizeof(TF_Tensor *) * NumOutputs);
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     debug();
 #endif
 
@@ -131,7 +131,7 @@ float TfModelInterface::predict() {
     TF_SessionRun(Session, nullptr, Input, InputValues, NumInputs, Output,
             OutputValues, NumOutputs, nullptr, 0, nullptr, Status);
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     if (TF_GetCode(Status) == TF_OK){
         printf("Session is OK\n");
     }
@@ -143,7 +143,7 @@ float TfModelInterface::predict() {
 
     void* buff = TF_TensorData(OutputValues[0]);
     auto* prediction = static_cast<float *>(buff);
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     printf("Result Tensor :\n");
     printf("%f\n",prediction[0]);
 
@@ -154,7 +154,7 @@ float TfModelInterface::predict() {
     #endif
 #endif
 
-    TF_DeleteTensor(OutputValues[0]); // TODO
+    TF_DeleteTensor(OutputValues[0]);
 
     return prediction[0];
 }
@@ -170,7 +170,7 @@ LSTM::LSTM() {
     init(saved_model_dir, LSTM_ENTRY_POINT);
 }
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
 float LSTM::debug() {
     float tmp[1][3][2] = {{
                                   {0.0,1.0},
@@ -219,7 +219,7 @@ float LSTM::encode_and_predict(void* mapped_input, unsigned long terminal_count)
 
     int ndims = 3;
     int64_t dims[] = {1, static_cast<int64_t>(terminal_count), 2};
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     for(unsigned long i = 0; i < terminal_count; i++){
         printf("%f\t%f\n", ((float (*)[terminal_count][2]) mapped_input)[0][i][0],
                 ((float (*)[terminal_count][2]) mapped_input)[0][i][1]);
@@ -231,7 +231,7 @@ float LSTM::encode_and_predict(void* mapped_input, unsigned long terminal_count)
     TF_Tensor *float_tensor = TF_NewTensor(TF_FLOAT, dims, ndims, ((float (*)[terminal_count][2]) mapped_input),
             ndata, &NoOpDeallocator, 0);
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     if (float_tensor != nullptr)
         printf("TF_NewTensor is OK\n");
     else
@@ -240,7 +240,11 @@ float LSTM::encode_and_predict(void* mapped_input, unsigned long terminal_count)
 
     InputValues[0] = float_tensor;
 
-    return predict();
+    float raw_prediction = predict();
+
+    TF_DeleteTensor(float_tensor);
+
+    return raw_prediction;
 }
 
 /*
@@ -259,7 +263,7 @@ CNN::~CNN(){
     free(image_buffer);
 }
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
 float CNN::debug() {
     float tmp[1][CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1] = {};
     tmp[0][0][0][0] = 1.0f;
@@ -271,7 +275,7 @@ float CNN::debug() {
 
 float CNN::preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned long number_of_terminals,
                                   const ClusteringContext& cluster_ctx) {
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     printf("preprocessing sample\n");
 #endif
 
@@ -279,7 +283,7 @@ float CNN::preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned lon
         return -1;
 
     //convert net to grid of relative terminal coords in BB (2d array)
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     printf("size within limit\n");
 #endif
     auto& place_ctx = g_vpr_ctx.placement();
@@ -288,7 +292,7 @@ float CNN::preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned lon
     // initialize whole array to 0
     memset(image_buffer, 0, CNN_INPUT_GRID_SIZE*CNN_INPUT_GRID_SIZE*sizeof(float));
     //float image[1][CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1] = {};
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     printf("image prepared\n");
 #endif
     // process ource
@@ -309,7 +313,7 @@ float CNN::preprocess_and_predict(ClusterNetId net_id, t_bb* bbptr, unsigned lon
 
         image_buffer[0][x - bbptr->xmin][y - bbptr->ymin][0] = 1.0f; // set pixel at position of current sink terminal to 1
     }
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     printf("image filled\n");
 #endif
 
@@ -321,7 +325,7 @@ float CNN::encode_and_predict(void* mapped_input, unsigned long terminal_count) 
 
     int ndims = 4;
     int64_t dims[] = {1, CNN_INPUT_GRID_SIZE, CNN_INPUT_GRID_SIZE, 1};
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     for(int i = 0; i < CNN_INPUT_GRID_SIZE; i++){
         for(int j = 0; j < CNN_INPUT_GRID_SIZE; j++) {
             printf("%.0f ", ((float (*)[CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1]) mapped_input)[0][i][j][0]);
@@ -336,7 +340,7 @@ float CNN::encode_and_predict(void* mapped_input, unsigned long terminal_count) 
             ((float (*)[CNN_INPUT_GRID_SIZE][CNN_INPUT_GRID_SIZE][1]) mapped_input), ndata, &NoOpDeallocator,
             0);
 
-#if DEBUG_NN
+#if DEBUG_NN_INTEGRATION
     if (float_tensor != nullptr)
         printf("TF_NewTensor is OK\n");
     else
@@ -347,7 +351,7 @@ float CNN::encode_and_predict(void* mapped_input, unsigned long terminal_count) 
 
     float raw_prediction = predict();
 
-    TF_DeleteTensor(float_tensor); // TODO
+    TF_DeleteTensor(float_tensor);
 
     return raw_prediction;
 }
