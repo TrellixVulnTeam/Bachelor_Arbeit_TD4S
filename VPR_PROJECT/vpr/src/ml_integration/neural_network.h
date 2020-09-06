@@ -16,30 +16,10 @@
 
 #include "tensorflow/c/c_api.h"
 
-//#include "vtr_assert.h"
-//#include "vtr_log.h"
-//#include "vtr_util.h"
-//#include "vtr_random.h"
-
 #include "vpr_types.h"
-//#include "vpr_error.h"
-//#include "vpr_utils.h"
 
 #include "globals.h"
 #include "place.h"
-//#include "read_place.h"
-//#include "draw.h"
-//#include "place_and_route.h"
-//#include "net_delay.h"
-//#include "timing_place_lookup.h"
-//#include "timing_place.h"
-//#include "read_xml_arch_file.h"
-//#include "echo_files.h"
-//#include "vpr_utils.h"
-//#include "place_macro.h"
-//#include "../util/histogram.h" // specified import more precisely because of header file with same name in tensorflow package
-//#include "place_util.h"
-//#include "place_delay_model.h"
 
 #define CNN_INPUT_GRID_SIZE 64
 #define LSTM_ENTRY_POINT "serving_default_lstm_renamed_input"
@@ -49,7 +29,9 @@
 class TfModelInterface {
 public:
 
-    /// TODO
+    /// loads the tf library and creates a session from the saved_model, also mallocing necessary structures
+    /// \param saved_model_dir path to the saved_model
+    /// \param nn_input_entry_point entry point for the specific model, can be obtained using the saved_model_cli tool
     void init(const char *saved_model_dir, const char *nn_input_entry_point);
 
     /// destructor freeing explicitly allocated memory

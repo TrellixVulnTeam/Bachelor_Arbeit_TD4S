@@ -229,7 +229,7 @@ float LSTM::encode_and_predict(void* mapped_input, unsigned long terminal_count)
     int ndata = sizeof(float)*2*terminal_count;  //total size of data
 
     TF_Tensor *float_tensor = TF_NewTensor(TF_FLOAT, dims, ndims, ((float (*)[terminal_count][2]) mapped_input),
-            ndata, &NoOpDeallocator, 0);
+            ndata, &NoOpDeallocator, nullptr);
 
 #if DEBUG_NN_INTEGRATION
     if (float_tensor != nullptr)

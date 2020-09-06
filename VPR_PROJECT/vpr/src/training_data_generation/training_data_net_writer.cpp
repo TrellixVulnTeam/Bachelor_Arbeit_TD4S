@@ -24,13 +24,11 @@ static void print_current_net_placement(ClusterNetId net_id, t_bb* bbptr, float 
 void init_net_printing_structures() {
 
 	cout << "please specify training data output path (absolute path, ending with '.txt').\n";
-	cin.ignore();
 	getline(cin, current_design_base_path);
 
 	ofstream test_file(current_design_base_path, ios::out | ios::trunc);
 	while (!test_file.is_open()) {
 		cout << "specified invalid path: '" << current_design_base_path << "', please try again.\n";
-		cin.ignore();
 		getline(cin, current_design_base_path);
 		test_file.open(current_design_base_path, ios::out | ios::trunc);
 	}

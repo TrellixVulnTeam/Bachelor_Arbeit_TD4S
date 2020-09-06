@@ -9,9 +9,9 @@
  * 3: is ml_integration LSTM = wiring cost estimation via LSTM NN, includes features of reference
  * 4: is ml_integration CNN = wiring cost estimation via CNN NN, includes features of reference
  */
-#define MODE 1
+#define MODE 3
 /// enables debugging of NN integration and training data generation
-#define DEBUG_NN_INTEGRATION 1
+#define DEBUG_NN_INTEGRATION 0
 
 #include "vpr_types.h"
 void try_place(t_placer_opts placer_opts,
