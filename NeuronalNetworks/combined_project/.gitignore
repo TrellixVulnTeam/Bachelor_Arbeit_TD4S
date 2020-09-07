@@ -1,10 +1,11 @@
 .idea/
 __pycache__/
 input_files/
-*.txt
 
 # tfrecord files
 */*/*.tfrecord
 
+# preprocessed training data for CNNs
+records_limited/*
 # trained models
 models

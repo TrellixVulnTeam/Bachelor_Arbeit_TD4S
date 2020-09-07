@@ -1,6 +1,7 @@
 *.rpt
 *.stackdump
 vpr_stdout.log
+*.txt
 
 evaluation_results
 tmp
