@@ -1,3 +1,7 @@
+Author: Vincenz Julius Mechler
+
+This project is part of the bachelor's thesis "Wirlength Estimation with Neural Networks in VPR", TU Darmstadt, Summer 2020.
+
 Notes on Installation and Usage
 ===============================
 
