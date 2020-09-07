@@ -171,3 +171,16 @@ produced *vpr.exe* executable has to be renamed to *vpr\_reference.exe*,
 the appropriate executable for the mode to be evaluated, giving it the
 default name *vpr.exe*, before calling VPR with the arguments specific to
 that evaluation run.
+
+License
+=======
+
+This work contains content by other creators subject to their own copyrights and licenses. 
+
+The VTR Project, located in *VPR_PROJECT/*, as well as the TensorFlow C API in *VPR_PROJECT/vpr/src/ml_integration/lib* and *VPR_PROJECT/vpr/src/ml_integration/include/tensorflow* explicitly specify their respective licenses.
+
+When using or building upon this project all 3rd party licenses have to be respected.
+
+This project itself with all its original content, as long as not restricted by other licenses, is subject to the MIT License.
+
+`SPDX-License-Identifier: MIT`
