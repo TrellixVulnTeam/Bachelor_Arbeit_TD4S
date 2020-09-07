@@ -550,7 +550,7 @@ def train_one_model_variant(lstm_layer_count, dense_layer_count, inflation_type,
     current_model_for_validation = define_model(lstm_layer_count, dense_layer_count, inflation_type, True)
 
     current_basepath = os.path.abspath(
-        "./models/tmp/{}_lstm_layers_{}_dense_layers_{}_2".format(
+        "./models/rnn/{}_lstm_layers_{}_dense_layers_{}".format(
             lstm_layer_count, dense_layer_count, inflation_type
         )
     )
