@@ -33,7 +33,7 @@ Our metric of choice is runtime/quality trade-off, specifically discretely sampl
 	\item 1250 * t\textsubscript{p}, or \textit{sampling point 1250}
 \end{itemize}
 
-The actual runtime, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{inner\_num} setting of \gls{VPR}.\cite{vtr8} 
+The actual runtime, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{inner\_num} setting of \gls{VPR}\cite{vtr8}. 
 
 Based on observations we state without formal proof that most of the computations of the \gls{VPR} Placer are performed inside each of these steps. Furthermore, while steps perform random actions and can have vastly differing runtime, within a certain \textit{temperature level} steps with different runtimes are distributed randomly, and the number of steps per temperature is generally high. Therefore, changing this number of steps will not change the distribution of step runtimes within a certain temperature-level, which means their average runtime remains approximately the same. Therefore, changes to the \textit{inner\_num} parameter, which is a linear factor for the actual number of steps performed, affect the total runtime of the modified \gls{VPR} Placer approximately linearly.
 
@@ -188,7 +188,7 @@ Note that these choices might not be obvious. Indeed, also factoring in the achi
 	\label{fig:eval-hyperopt-surface-reference}
 \end{figure}
 
-By comparing the performance to that of the unchanged \gls{VPR} Placer we can, however, see that none of the \glspl{NN} is able to beat \gls{HPWL} at sampling point 10 (see Figure \ref{fig:eval-hyperopt-surface-reference}).
+By comparing the performance to that of the unchanged \gls{VPR} Placer we can, however, see that none of the \glspl{NN} is able to beat \gls{HPWL} at sampling point 10, at least on the evaluation set (see Figure \ref{fig:eval-hyperopt-surface-reference}).
 
 \section{Results}
 
