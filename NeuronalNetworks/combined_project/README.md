@@ -84,6 +84,8 @@ To analyze the results and print the best model per type, *plot_model_selection.
 
 The best CNN and best RNN model have to be specified manually at the top of *evaluation.py* for the following evaluation.
 
+If a Model has already been evaluated with a certain circuit, the evaluation will simply read the VPR logfiles stored in that model's folder and not call VPR again. To prevent this, the folders prefixed *placement_nr\_* in the model's folder have to be deleted. *runtime\_quality\_map.pkl* should also be deleted.
+
 #### Final Evaluation
 
 Once the best models are specified correctly, the final evaluation can be executed using *evaluation.py*.
@@ -95,5 +97,7 @@ The evaluation will take a long time to finish.
 Intermediary results are saved and terminating and resuming the evaluation is supported 
 
 (IMPORTANT: this process frequently loads and writes data from and to the filesystem. Do not execute any processes that might change the files used by the evaluation, mainly *runtime_quality_map.pkl*, *eval_performance_map.pkl* and the contents of *../models/*.)
+
+As with model selection, repeating the evaluation requires deletion of the saved log files and pickle dump. To do this delete the whole *evaluation\_results* folder as well as the file *eval\_performance\_map.pkl*.
 
 *plot_evaluation.py* visualizes the results and creates a result table in latex format.
