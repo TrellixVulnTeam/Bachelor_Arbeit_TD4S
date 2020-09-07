@@ -120,7 +120,9 @@ static uint16_t compute_min_wiring_cost(ClusterNetId net_id, const t_bb* bbptr) 
 
 	uint16_t sinks_left = 0;
 	for (auto pin_id : cluster_ctx.clb_nlist.net_sinks(net_id)) {
+#if DEBUG_NN_INTEGRATION
 	    cout << "handling one sink\n";
+#endif
 		sinks_left++;
 		bnum = cluster_ctx.clb_nlist.pin_block(pin_id);
 		pnum = cluster_ctx.clb_nlist.pin_physical_index(pin_id);
