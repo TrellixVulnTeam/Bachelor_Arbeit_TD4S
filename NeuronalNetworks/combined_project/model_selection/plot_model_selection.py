@@ -191,8 +191,8 @@ def print_result_table(circuit):
             tuples,
             [
                 {
-                    "channel_width": round(np.asarray(runtime_quality_map[key][2][0]).mean(), 2),
-                    "critical_path_ns": round(np.asarray(runtime_quality_map[key][2][1]).mean(), 2)
+                    "channel_width": round(float(np.median(np.asarray(runtime_quality_map[key][2][0]))), 2),
+                    "critical_path_ns": round(float(np.median(np.asarray(runtime_quality_map[key][2][1]))), 2)
                 }
                 for key
                 in keys
@@ -208,13 +208,13 @@ def print_result_table(circuit):
     keys = [entry for entry in keys if entry[1] == circuit]
     keys = [entry for entry in keys if "conv" in entry[0]]
     tuples = [(entry[0].split("_")[0], entry[0].split("_")[3], entry[0].split("_")[6]) for entry in keys]
-    dict_lstm = dict(
+    dict_cnn = dict(
         zip(
             tuples,
             [
                 {
-                    "channel_width": np.asarray(runtime_quality_map[key][2][0]).mean(),
-                    "critical_path_ns": np.asarray(runtime_quality_map[key][2][1]).mean()
+                    "channel_width": round(float(np.median(np.asarray(runtime_quality_map[key][2][0]))), 2),
+                    "critical_path_ns": round(float(np.median(np.asarray(runtime_quality_map[key][2][1]))), 2)
                 }
                 for key
                 in keys
@@ -222,8 +222,88 @@ def print_result_table(circuit):
         )
     )
     index=pd.MultiIndex.from_tuples(tuples, names=['conv_layer_count', 'structure', 'kernel_size'])
-    df = pd.DataFrame(dict_lstm, columns=index).transpose()
+    df = pd.DataFrame(dict_cnn, columns=index).transpose()
     df.to_latex("model_selection_cnn_performance_table_{}_latex.txt".format(circuit))
+
+
+def print_result_table_full(circuit):
+    keys = list(runtime_quality_map.keys())
+    keys = [entry for entry in keys if isinstance(entry, tuple)]
+    keys = [entry for entry in keys if entry[1] == circuit]
+    keys = [entry for entry in keys if "lstm" in entry[0]]
+    tuples = [(entry[0].split("_")[0], entry[0].split("_")[3], entry[0].split("_")[6]) for entry in keys]
+    row_tuples = [("channel_width", "1"),
+                ("channel_width", "2"),
+                ("channel_width", "3"),
+                ("channel_width", "mean"),
+                ("critical_path", "1"),
+                ("critical_path", "2"),
+                ("critical_path", "3"),
+                ("critical_path", "mean")]
+    values = [
+                {
+                    ("channel_width", "1"): round(runtime_quality_map[key][2][0][0], 2),
+                    ("channel_width", "2"): round(runtime_quality_map[key][2][0][1], 2),
+                    ("channel_width", "3"): round(runtime_quality_map[key][2][0][2], 2),
+                    ("channel_width", "mean"): round(float(np.asarray(runtime_quality_map[key][2][0]).mean()), 2),
+                    ("critical_path", "1"): round(runtime_quality_map[key][2][1][0], 2),
+                    ("critical_path", "2"): round(runtime_quality_map[key][2][1][1], 2),
+                    ("critical_path", "3"): round(runtime_quality_map[key][2][1][2], 2),
+                    ("critical_path", "mean"): round(float(np.asarray(runtime_quality_map[key][2][1]).mean()), 2)
+                }
+                for key
+                in keys
+            ]
+    dict_eval = dict(
+        zip(
+            tuples,
+            values
+        )
+    )
+    index=pd.MultiIndex.from_tuples(tuples, names=['lstm_layer_count', 'dense_layer_count', 'structure'])
+    index_rows=pd.MultiIndex.from_tuples(row_tuples, names=['metric', 'attempt'])
+    df = pd.DataFrame(dict_eval, columns=index, index=index_rows).transpose()
+    print(df)
+    df.to_latex("model_selection_lstm_performance_table_{}_latex_full.txt".format(circuit))
+
+    keys = list(runtime_quality_map.keys())
+    keys = [entry for entry in keys if isinstance(entry, tuple)]
+    keys = [entry for entry in keys if entry[1] == circuit]
+    keys = [entry for entry in keys if "conv" in entry[0]]
+    tuples = [(entry[0].split("_")[0], entry[0].split("_")[3], entry[0].split("_")[6]) for entry in keys]
+    row_tuples = [("channel_width", "1"),
+                ("channel_width", "2"),
+                ("channel_width", "3"),
+                ("channel_width", "mean"),
+                ("critical_path", "1"),
+                ("critical_path", "2"),
+                ("critical_path", "3"),
+                ("critical_path", "mean")]
+    values = [
+                {
+                    ("channel_width", "1"): round(runtime_quality_map[key][2][0][0], 2),
+                    ("channel_width", "2"): round(runtime_quality_map[key][2][0][1], 2),
+                    ("channel_width", "3"): round(runtime_quality_map[key][2][0][2], 2),
+                    ("channel_width", "mean"): round(float(np.asarray(runtime_quality_map[key][2][0]).mean()), 2),
+                    ("critical_path", "1"): round(runtime_quality_map[key][2][1][0], 2),
+                    ("critical_path", "2"): round(runtime_quality_map[key][2][1][1], 2),
+                    ("critical_path", "3"): round(runtime_quality_map[key][2][1][2], 2),
+                    ("critical_path", "mean"): round(float(np.asarray(runtime_quality_map[key][2][1]).mean()), 2)
+                }
+                for key
+                in keys
+            ]
+    dict_eval = dict(
+        zip(
+            tuples,
+            values
+        )
+    )
+    index=pd.MultiIndex.from_tuples(tuples, names=['conv_layer_count', 'structure', 'kernel_size'])
+    index_rows=pd.MultiIndex.from_tuples(row_tuples, names=['metric', 'attempt'])
+    df = pd.DataFrame(dict_eval, columns=index, index=index_rows).transpose()
+    print(df)
+    df.to_latex("model_selection_cnn_performance_table_{}_latex_full.txt".format(circuit))
 
 
 def print_best_model(circuit):
@@ -239,7 +319,7 @@ def print_best_model(circuit):
     values_rnn = [value for key, value in results_rnn]
     result_rnn = [key for key, value in results_rnn if value == min(values_rnn)]
 
-    # print(result_rnn)
+    print(result_rnn)
     print("best rnn: {} with channel_width {}".format(
         result_rnn[0] if len(result_rnn) == 1 else result_rnn[1], min(values_rnn))  # does not change optimality of choice, but produces the chosen best_rnn on present data...
     )
@@ -248,15 +328,16 @@ def print_best_model(circuit):
     values_cnn = [value for key, value in results_cnn]
     result_cnn = [key for key, value in results_cnn if value == min(values_cnn)]
 
-    # print(result_cnn)
+    print(result_cnn)
     print("best cnn: {} with channel_width {}".format(
         result_cnn[0] if len(result_cnn) == 1 else result_cnn[1], min(values_cnn))
     )
 
 
 if __name__ == "__main__":
-    # plot_model_scores_over_hyperparams(eval_circuits[0], "channel_width", reference=True)
-    # plot_model_scores_over_hyperparams(eval_circuits[0], "critical path length (ns)", reference=True)
-    #
-    # print_result_table(eval_circuits[0])
+    plot_model_scores_over_hyperparams(eval_circuits[0], "channel_width", reference=True)
+    plot_model_scores_over_hyperparams(eval_circuits[0], "critical path length (ns)", reference=True)
+
+    print_result_table(eval_circuits[0])
+    print_result_table_full(eval_circuits[0])
     print_best_model(eval_circuits[0])

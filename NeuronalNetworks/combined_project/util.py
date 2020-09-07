@@ -3,6 +3,9 @@ from parameters import *
 import os
 import tensorflow as tf
 
+"""
+HPWL correction factors copied from VPR Placer
+"""
 cross_count = [1.0, 1.0, 1.0, 1.0828, 1.1536, 1.2206, 1.2823, 1.3385, 1.3991, 1.4493, 1.4974, 1.5455, 1.5937, 1.6418,
                1.6899, 1.7304, 1.7709, 1.8114, 1.8519, 1.8924, 1.9288, 1.9652, 2.0015, 2.0379, 2.0743, 2.1061, 2.1379,
                2.1698, 2.2016, 2.2334, 2.2646, 2.2958, 2.3271, 2.3583, 2.3895, 2.4187, 2.4479, 2.4772, 2.5064, 2.5356,
@@ -11,7 +14,7 @@ cross_count = [1.0, 1.0, 1.0, 1.0828, 1.1536, 1.2206, 1.2823, 1.3385, 1.3991, 1.
 
 class SingleDataSet(object):
     """
-    defines a class to enable custom equality check and set building only depending on the coordinate pairs
+    defines a class to enable custom equality check and set forming only depending on the coordinate pairs
     """
     def __init__(self, max_of_bb_size, corrected_hpwl, coordinate_pairs, true_cost):
         self.max_of_bb_size = max_of_bb_size
@@ -23,6 +26,7 @@ class SingleDataSet(object):
         return self.coordinate_pairs == other.coordinate_pairs
 
     def __hash__(self):
+        # enable custom set forming
         return hash(str(self.coordinate_pairs))  # ugly, but hey, it works...
 
     def __str__(self):
@@ -52,10 +56,13 @@ def get_corrected_bounding_box_cost(bb_cost, number_of_terminals):
     return bb_cost * crossing
 
 
-def read_input_file(normalize, respect_ordering=True, remove_len_2_and_3=True):
+def read_input_file(normalize: bool, respect_ordering=True, remove_len_2_and_3=True):
     """
-    TODO
-    :return:
+    reads all training data log file produced by VPR 'training data generation' mode specified in parameters.py
+    :param normalize: whether to normalize coordinates by the maximum of their BB x and y size
+    :param respect_ordering: whether to keep original terminal ordering or to sort terminals by their coordinates
+    :param remove_len_2_and_3: whether to drop all samples with less than four terminals
+    :return: a list containing all samples contained in the files, each as a SingleDataSet object
     """
     input_data_set_list = []
     state = 0
@@ -95,7 +102,7 @@ def read_input_file(normalize, respect_ordering=True, remove_len_2_and_3=True):
                 else:
                     coord_pair_list.sort()  # sorts coordinate pairs in ascending order, first by X, then by Y
                     current_data_set.append(coord_pair_list)  # third element: list of coordinate pairs
-                if normalize:  # TODO
+                if normalize:
                     current_data_set[1] = (
                                         get_corrected_bounding_box_cost(current_data_set[1], len(coord_pair_list))
                                         /
@@ -130,6 +137,15 @@ def read_input_file(normalize, respect_ordering=True, remove_len_2_and_3=True):
 
 
 def read_input_file_no_duplicates(normalize, respect_ordering=True, remove_len_2_and_3=True):
+    """
+    reads all training data log file produced by VPR 'training data generation' mode specified in parameters.py and
+    eliminates duplicates
+    :param normalize: whether to normalize coordinates by the maximum of their BB x and y size
+    :param respect_ordering: whether to keep original terminal ordering or to sort terminals by their coordinates
+    :param remove_len_2_and_3: whether to drop all samples with less than four terminals
+    :return: a set containing all samples contained in the files, each as a SingleDataSet object, but no duplicates
+    (based only on their lists of terminal coordinates)
+    """
     input_data_set_list = read_input_file(normalize, respect_ordering, remove_len_2_and_3)
     return set(input_data_set_list)
 

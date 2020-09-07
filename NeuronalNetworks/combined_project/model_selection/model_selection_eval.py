@@ -2,6 +2,13 @@ from model_selection.util import *
 
 
 def time_reference(circuit_path: str, circuit_name: str, target_path: str):
+    """
+    times the reference VPR Placer at inner_num 10
+    :param circuit_path: absolute path of directory to store the files
+    :param circuit_name:
+    :param target_path: location to store the VPR log file and the produced placement
+    :return: nothing, modifies global runtime_quality_map
+    """
     set_vpr_context("reference")
     time, quality = time_placement(circuit_path, circuit_name, target_path=target_path, place_only=False)
     print("reference took {}s at inner_num 10".format(time))
@@ -12,7 +19,7 @@ def time_reference(circuit_path: str, circuit_name: str, target_path: str):
 def analyze_nns(circuit_path: str, circuit_name: str, type: str):
     """
     analyze all NN versions of a certain type (compliled version of vpr)
-    :param circuit_path:
+    :param circuit_path: absolute path of directory to store the files
     :param circuit_name:
     :param type: type of the NNs: one of "rnn", "cnn", "cnn_no_conv"
     :return: nothing, modifies global runtime_quality_map
@@ -77,7 +84,7 @@ if __name__ == "__main__":
             benchmark_basepath,
             circuit
         ))
-        # pack_circuit(current_circuit_path, circuit, model_base_path)
+        pack_circuit(current_circuit_path, circuit, model_base_path)
         time_reference(current_circuit_path, circuit, model_base_path)
         analyze_nns(current_circuit_path, circuit, "rnn")
         analyze_nns(current_circuit_path, circuit, "cnn")

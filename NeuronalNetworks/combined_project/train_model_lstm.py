@@ -93,11 +93,11 @@ def load_data():
 
 
 def init_loss_histories(data_validate):
-
-    #
-    # prepare loss "histories" for original corrected hpwl
-    #
-
+    """
+    prepares structure to hold individual loss histories
+    :param data_validate: validation set
+    :return: individual loss history structure, 0, and mse of corrected hpwl
+    """
     # prepare individual loss histories, list contains records
     # of [loss_history, number_of_samples_for_this_feature_length]
     individual_loss_histories_validate = []
@@ -132,6 +132,21 @@ def init_loss_histories(data_validate):
 
 def define_model(lstm_layer_count: int, dense_layer_count: int, inflation_type,
                  validation_model: bool) -> tf.keras.Model:
+    """
+    define and compile a keras model based on the given parameters
+    :param lstm_layer_count: number of lstm layers, including input layer
+    :param dense_layer_count: number of dense layers, including output layer
+    :param inflation_type: the distribution of neurons over the model: one of
+        'inflating': starting with 4 neurons in input layer, every subsequent layer has 4 additional neurons
+        'deflating': every subsequent layer has 4 neurons less than the preceding layer, ending with 4 neurons in the
+                     layer immediately before the final dense layer
+        'bloating':  starting with 4 neurons in input layer, every subsequent lstm layer has 4 additional neurons,
+                     every subsequent dense layer has 4 neurons less than the preceding layer
+        the final dense layer always has 1 neuron.
+    :param validation_model: Flag whether to produce the validation model or the training model
+    (differing in input shape)
+    :return: the compiled model
+    """
     # model definition
     model = tf.keras.models.Sequential()
 
@@ -179,6 +194,16 @@ def define_model(lstm_layer_count: int, dense_layer_count: int, inflation_type,
 
 def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, list_of_batches: list, data_validate,
                 current_basepath: str):
+    """
+    trains the model using a custom training loop and early stopping
+    :param model: the model to train
+    :param model_for_validation: an identical model except for the input shape for manual validation
+    :param list_of_batches: training set, as list of equal-length batches, each containing only samples of equal
+    terminal count
+    :param data_validate: validation set
+    :param current_basepath: path to directory to save plots, logs, and teh trained model in
+    :return: nothing, modifies filesystem
+    """
     # create plot save folder
     plot_basepath = os.path.abspath(os.path.join(current_basepath, "plots/"))
     os.makedirs(plot_basepath)
@@ -235,7 +260,15 @@ def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, lis
                 np.asarray(data.coordinate_pairs).reshape(1, len(data.coordinate_pairs), 2)
             )
             # log produced results for plotting (only for first, middle and last iteration because of visual clutter)
-            if (epoch_count == 0) or (epoch_count == epochs - 1) or (epoch_count == int(epochs / 2)) or (early_stopping_counter > early_stopping_patience):
+            if (
+                    (epoch_count == 0)
+                    or
+                    (epoch_count == epochs - 1)
+                    or
+                    (epoch_count == int(epochs / 2))
+                    or
+                    (early_stopping_counter > early_stopping_patience)
+            ):
                 produced_results.append(result)
             # compute validation loss
             if loss_function == 'mean_squared_error':
@@ -260,7 +293,7 @@ def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, lis
             early_stopping_counter = 0
             # save current model weights as checkpoint
             early_stopping_checkpoint = model.get_weights()
-            #update bsf val loss
+            # update bsf val loss
             best_val_loss = current_val_loss
         else:
             print("loss did not improved from {} (currently {})".format(best_val_loss, current_val_loss))
@@ -277,7 +310,13 @@ def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, lis
         # optionally compute reference train error (= error produced on training set with same Network state used for
         # calculating validation error
         squared_loss_sum = 0
-        if compute_and_plot_reference_train_error or (epoch_count == epochs - 1) or (early_stopping_counter > early_stopping_patience):
+        if (
+                compute_and_plot_reference_train_error
+                or
+                (epoch_count == epochs - 1)
+                or
+                (early_stopping_counter > early_stopping_patience)
+        ):
             for batch in list_of_batches:
                 for data in batch:
                     result = model_for_validation.predict(
@@ -293,7 +332,15 @@ def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, lis
             loss_history_train_reference.append(float(squared_loss_sum / (len(list_of_batches) * batch_size)))
 
         # plot expected and produced results (only for first, middle and last iteration because of visual clutter)
-        if (epoch_count == 0) or (epoch_count == epochs - 1) or (epoch_count == int(epochs / 2)) or (early_stopping_counter > early_stopping_patience):
+        if (
+                (epoch_count == 0)
+                or
+                (epoch_count == epochs - 1)
+                or
+                (epoch_count == int(epochs / 2))
+                or
+                (early_stopping_counter > early_stopping_patience)
+        ):
             plt.title("predictions against true values, epoch " + str(epoch_count))
             plt.scatter(range(validation_plotting_point_count)
                         if validation_plotting_point_count < len(produced_results)
@@ -329,7 +376,13 @@ def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, lis
         plt.yscale('log')
         plt.plot(range(epoch_count + 1), loss_history_validate, 'bo-', label='validation loss')
         plt.plot(range(epoch_count + 1), loss_history_train, 'gx-', label='training loss')
-        if compute_and_plot_reference_train_error or (epoch_count == epochs - 1) or (early_stopping_counter > early_stopping_patience):
+        if (
+                compute_and_plot_reference_train_error
+                or
+                (epoch_count == epochs - 1)
+                or
+                (early_stopping_counter > early_stopping_patience)
+        ):
             if not compute_and_plot_reference_train_error:
                 reference_loss_last_iter = loss_history_train_reference[0]
                 loss_history_train_reference = []
@@ -430,6 +483,14 @@ def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, lis
 
             print("validation loss history:")
             print(df_individual_loss_histories)
+            if(
+                (epoch_count == epochs - 1)
+                or
+                (early_stopping_counter > early_stopping_patience)
+            ):
+                df_individual_loss_histories.to_csv(
+                    os.path.abspath(os.path.join(current_basepath, "individual_loss_histories.csv"))
+                )
             print("loss history:")
             print(loss_history_validate)
         # check if training finished due to early stopping
@@ -465,6 +526,22 @@ def train_model(model: tf.keras.Model, model_for_validation: tf.keras.Model, lis
 
 def train_one_model_variant(lstm_layer_count, dense_layer_count, inflation_type, list_of_batches,
                             data_validate):
+    """
+    creates a model based on teh given parameters and trains it, saving it to disk
+    :param lstm_layer_count: number of lstm layers
+    :param dense_layer_count: number of dense layers
+    :param inflation_type: the distribution of neurons over the model: one of
+        'inflating': starting with 4 neurons in input layer, every subsequent layer has 4 additional neurons
+        'deflating': every subsequent layer has 4 neurons less than the preceding layer, ending with 4 neurons in the
+                     layer immediately before the final dense layer
+        'bloating':  starting with 4 neurons in input layer, every subsequent lstm layer has 4 additional neurons,
+                     every subsequent dense layer has 4 neurons less than the preceding layer
+        the final dense layer always has 1 neuron.
+    :param list_of_batches: training set, as list of equal-length batches, each containing only samples of equal
+    terminal count
+    :param data_validate: validation set
+    :return: nothing, modifies filesystem
+    """
     print("\n\n\ntraining model '{}_lstm_layers_{}_dense_layers_{}'\n\n\n".format(
             lstm_layer_count, dense_layer_count, inflation_type
     ))
@@ -473,7 +550,7 @@ def train_one_model_variant(lstm_layer_count, dense_layer_count, inflation_type,
     current_model_for_validation = define_model(lstm_layer_count, dense_layer_count, inflation_type, True)
 
     current_basepath = os.path.abspath(
-        "./models/rnn/{}_lstm_layers_{}_dense_layers_{}".format(
+        "./models/tmp/{}_lstm_layers_{}_dense_layers_{}_2".format(
             lstm_layer_count, dense_layer_count, inflation_type
         )
     )
@@ -494,7 +571,5 @@ if __name__ == "__main__":
     for current_lstm_layer_count in lstm_layer_counts:
         for current_dense_layer_count in dense_layer_counts:
             for current_inflation_type in inflation_types:
-                if current_lstm_layer_count == 3 and current_dense_layer_count == 2 and current_inflation_type == "inflating":
-                    continue
                 train_one_model_variant(current_lstm_layer_count, current_dense_layer_count, current_inflation_type,
                                         batches, data_val)

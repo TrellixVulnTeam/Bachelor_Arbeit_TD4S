@@ -49,7 +49,7 @@ def print_result_table():
     index_rows=pd.MultiIndex.from_tuples(row_tuples, names=['metric', 'attempt'])
     df = pd.DataFrame(dict_eval, columns=index, index=index_rows).transpose()
     print(df)
-    df.to_latex("evaluation_performance_table_latex.txt")
+    df.to_latex("evaluation_performance_table_latex_full.txt")
 
 
 def get_perf(circuit, metric, type):
@@ -120,7 +120,7 @@ def plot_perf_over_sampling_points(values_ref, values_cnn, values_rnn, circuit, 
     plt.ylabel("{} achieved {}".format(type, metric))
     plt.title("{} performance over sampling points (runtime aligned)\ncircuit '{}', metric '{}'".format(type, circuit, metric))
     plt.legend()
-    plt.savefig("../../../Thesis/plots/eval-{}-{}-{}.png".format(circuit, "chan-width" if metric == metrics[0] else "critical-path", type))
+    plt.savefig("../../../Thesis/plots/eval-{}-{}-{}-full.png".format(circuit, "chan-width" if metric == metrics[0] else "critical-path", type))
     plt.show()
 
 
@@ -144,7 +144,7 @@ def plot_perf_over_sampling_points_all_circuits(metric, type):
 
 
 if __name__ == "__main__":
-    # print_result_table()
+    print_result_table()
     for current_type in ["mean", "min", "median"]:
         for current_metric in metrics:
             for current_circuit in test_circuits:

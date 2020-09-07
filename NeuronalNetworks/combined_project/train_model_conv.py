@@ -2,6 +2,17 @@ from util import *
 
 
 def define_model(conv_layer_count: int, inflation_type: str, conv_kernel_size: int) -> tf.keras.Model:
+    """
+    define and compile a keras model based on the given parameters
+    :param conv_layer_count: number of convolutional layers, including input layer
+    :param inflation_type: the distribution of neurons over the model: one of
+        'inflating': starting with 4 neurons in input layer, every subsequent layer has 4 additional neurons
+        'deflating': every subsequent layer has 4 neurons less than the preceding layer, ending with 4 neurons in the
+                     layer immediately before the final dense layer
+        the final dense layer always has 1 neuron.
+    :param conv_kernel_size: size of the kernel of all convolutional layers
+    :return: the compiled model
+    """
 
     filter_count = 4 if inflation_type == "deflating" else 1
 
@@ -41,23 +52,12 @@ def define_model(conv_layer_count: int, inflation_type: str, conv_kernel_size: i
 
 
 def train_model(model: tf.keras.Model, basepath: str) -> tf.keras.Model:
-    # # Log all variables for Tensorboard
-    # """for some_variable in tf.trainable_variables():
-    #     tf.summary.histogram(some_variable.name.replace(":","_"), some_variable)
-    # merged_summary = tf.summary.merge_all()"""
-    #
-    # root_logdir = os.path.join(os.curdir, "my_logs")
-    #
-    #
-    # def get_run_logdir():
-    #     """
-    #     creates a unique directory for each run based on local time to store logs in
-    #     :return: unique directory path (not yet created)
-    #     """
-    #     import time
-    #     run_id = time.strftime(network_architecture + "run_%Y_%m_%d-%H_%M_%S")
-    #     return os.path.join(root_logdir, run_id)
-    # run_logdir = get_run_logdir()
+    """
+    trains the given model with early stopping, saving tensorboard logs in the given directory
+    :param model: the model to train
+    :param basepath: directory to save the tensorboard logs and the checkpoints in
+    :return: the trained model
+    """
 
     run_logdir = os.path.abspath(os.path.join(basepath, "logs"))
     # initialize tensorboard with log directory
@@ -87,16 +87,29 @@ def train_model(model: tf.keras.Model, basepath: str) -> tf.keras.Model:
 
 
 def train_one_model_variant(conv_layer_count, inflation_type, conv_kernel_size):
+    """
+    creates a model based on teh given parameters and trains it, saving it to disk
+    :param conv_layer_count: number of convolutional layers
+    :param inflation_type: the distribution of neurons over the model: one of
+        'inflating': starting with 4 neurons in input layer, every subsequent layer has 4 additional neurons
+        'deflating': every subsequent layer has 4 neurons less than the preceding layer, ending with 4 neurons in the
+                     layer immediately before the final dense layer
+        the final dense layer always has 1 neuron.
+    :param conv_kernel_size: size of the kernel of all convolutional layers
+    :return: nothing, modifies filesystem
+    """
     print("\n\n\ntraining model '{}_conv_layers_{}_kernel_size_{}'\n\n\n".format(
         conv_layer_count, inflation_type, conv_kernel_size
     ))
-
+    # define teh model
     current_model = define_model(conv_layer_count, inflation_type, conv_kernel_size)
+    # prepare path to save model and logs/plots
     current_basepath = os.path.abspath(
         "./models/conv/{}_conv_layers_{}_kernel_size_{}".format(
             conv_layer_count, inflation_type, conv_kernel_size
         )
     )
+    # train the model
     current_model = train_model(current_model, current_basepath)
     # save the model to disk for deployment
     current_model.save(os.path.abspath(os.path.join(current_basepath, "model")), include_optimizer=False)
