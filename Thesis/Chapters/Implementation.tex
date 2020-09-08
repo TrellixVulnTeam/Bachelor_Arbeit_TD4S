@@ -89,6 +89,12 @@ To that end, the samples per distinct terminal count were limited to a fixed max
 
 Our \glspl{CNN}, encoding the data in a fixed size image irrespective of the terminal count, are less affected by this and were therefore trained without terminal count balancing.
 
+\begin{figure}[H]
+	\includegraphics[width=0.9\linewidth]{plots/cnn-encoding-proper.png}
+	\caption{Visualisation of net placement encoding procedure for \glspl{CNN}.}
+	\label{fig:cnn-encoding}
+\end{figure}
+
 \section{Neural Networks}
 
 The \glspl{NN} themselves are implemented as \gls{tf} 2.0 Keras models, both defined and trained in a Python project.
@@ -103,12 +109,6 @@ The defining feature of \glspl{CNN} are their convolutional layers, mainly defin
 
 \subsubsection{Input Format}
 
-\begin{figure}
-	\includegraphics[width=\linewidth]{plots/cnn-encoding-proper.png}
-	\caption{Visualisation of net placement encoding procedure for \glspl{CNN}.}
-	\label{fig:cnn-encoding}
-\end{figure}
-
 For the \glspl{CNN} the input coordinates have to be mapped to such an image. This is illustrated in Figure \ref{fig:cnn-encoding}.
 
 First, the lower-left corner of their \gls{BB} is subtracted, which is known from the remaining part of the \gls{HPWL} implementation. This helps to reduce the maximum occurring coordinates.
@@ -121,9 +121,9 @@ By mapping coordinate values to pixel values, the sample inputs are automaticall
 
 The target value for each sample is the unscaled Maze-Router wiring cost, as this saves the effort of post-processing the output in the runtime-critical integration into \gls{VPR}.
 
-\subsubsection{Structure}\label{ch:cnn-design}
+\pagebreak
 
-\begin{figure}
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[b]{0.3\linewidth}
 		\includegraphics[width=\linewidth]{plots/cnn-candidates-2-conv.png}
@@ -141,6 +141,8 @@ The target value for each sample is the unscaled Maze-Router wiring cost, as thi
 	\label{fig:cnn-structure-abstract}
 \end{figure}
 
+\subsubsection{Structure}\label{ch:cnn-design}
+
 To keep runtime small, the structure of our \glspl{CNN} is kept simple, with only few and small layers.
 
 The general \gls{CNN} design, as illustrated in Figure \ref{fig:cnn-structure-abstract}, consists of zero to two convolutional layers, followed by a flatten and one to two dense layers. As the last layer, however, is always a dense layer with a single neuron, to achieve regression of one target variable, and the flatten layer is parameter-less, this leaves one to three custom layers. 
@@ -151,9 +153,9 @@ The neuron counts per dense layer are structured by two patterns, either with co
 
 The filter size of the convolutional layers can be 3x3 or 7x7, but is constant within all convolutional layers of a specific network.
 
-\subsubsection{Training}
+\pagebreak
 
-\begin{figure}
+\begin{figure}[H]
 	\centering
 	\begin{subfigure}[b]{0.3\linewidth}
 		\includegraphics[width=\linewidth]{plots/cnn-training-history-2_conv_layers_deflating_kernel_size_7.png}
@@ -171,6 +173,8 @@ The filter size of the convolutional layers can be 3x3 or 7x7, but is constant w
 	\label{fig:cnn-train}
 \end{figure}
 
+\subsubsection{Training}
+
 For this network, the standard training loop invoked by calling the \textit{fit(...)} method of the \gls{tf} model is used, specifying training and validation data as well as number of epochs and batch size.
 
 However, as using images to represent coordinates is an extremely inefficient encoding, and the training set holds many samples, it is not possible with our available hardware to hold the full set of training data in memory. Therefore, the samples are prepared as \textit{tfrecord} files stored on disk, each holding 1.000 samples, and a generator is passed to the fit method instead of the actual samples.
@@ -182,6 +186,8 @@ Furthermore, to keep the effort of training all \gls{CNN} candidates manageable,
 The performance is logged using TensorBoard\cite{tensorboard-web}, and in the end the trained model is saved in the \gls{tf} SavedModel format\cite{savedmodel-web}, ready to be deployed to the adapted version of \gls{VPR}.
 
 Early stopping, with a patience of 4, and checkpointing are deployed to automatically detect overfitting and save only the best weights evaluated during training of each model. This is necessary as the model might start to overfit or lose performance due to the inoptimality of the stochastic gradient descent used to train the model. Indeed, our \gls{CNN} models tend to overfit quickly, depending on the model complexity (see Figure \ref{fig:cnn-train}). 
+
+\pagebreak
 
 \subsection{\gls{RNN}}
 
@@ -250,22 +256,6 @@ Thus, one to three \gls{LSTM} layers are followed by one or two dense layers, th
 
 \subsubsection{Training}
 
-\begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{plots/rnn-training-history-3_lstm_layers_2_dense_layers_inflating.png}
-		\caption{3 lstm layers, 2 dense layers}
-		\label{fig:rnn-training-overfit}
-	\end{subfigure}
-	\begin{subfigure}[b]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{plots/rnn-training-history-1_lstm_layers_1_dense_layers_inflating.png}
-		\caption{1 lstm layer, 1 dense layer}
-		\label{fig:rnn-training-simple}
-	\end{subfigure}
-	\caption{Exemplary training histories of \gls{RNN} candidates with different complexity.}
-	\label{fig:rnn-training}
-\end{figure}
-
 Although \glspl{RNN} generally support variable-length input sequences, the implementation behind \gls{tf} imposes a limit on this: Input sequences within the same batch of samples are required to have uniform sequence length.
 
 The standard \textit{fit(...)} method, however, only allows the user to specify the training data and batch size, but not to pass predefined batches.
@@ -282,10 +272,22 @@ To ensure a randomized order while training, batches are shuffled both externall
 
 Due to the custom training loop, the training of these \gls{RNN} model is not supported for supervision using TensorBoard due to the custom training loop. Therefore, simple logging and visualization are implemented manually to help in debugging and model selection.
 
-\begin{figure}
-	\includegraphics[width=\linewidth]{plots/rnn-training-history-individual-3_lstm_layers_2_dense_layers_inflating.png}
-	\caption{Individual validation error histories for different terminal counts. Error on high and medium/low terminal counts partially counteracting.}
-	\label{fig:rnn-training-individual}
+\pagebreak
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[b]{0.45\linewidth}
+	\includegraphics[width=\linewidth]{plots/rnn-training-history-3_lstm_layers_2_dense_layers_inflating.png}
+	\caption{3 lstm layers, 2 dense layers}
+	\label{fig:rnn-training-overfit}
+\end{subfigure}
+\begin{subfigure}[b]{0.45\linewidth}
+	\includegraphics[width=\linewidth]{plots/rnn-training-history-1_lstm_layers_1_dense_layers_inflating.png}
+	\caption{1 lstm layer, 1 dense layer}
+	\label{fig:rnn-training-simple}
+\end{subfigure}
+\caption{Exemplary training histories of \gls{RNN} candidates with different complexity.}
+\label{fig:rnn-training}
 \end{figure}
 
 Figure \ref{fig:rnn-training} shows the training histories of two different \glspl{RNN}. While \ref{fig:rnn-training-overfit} reaches higher performance due to a higher number of trainable parameters, it does not converge as smoothly as \ref{fig:rnn-training-simple}, which, owing to its simple structure, can only achieve a rough fit. The reason for the sharp spike in both training and evaluation error can be explained by taking a look at Figure \ref{fig:rnn-training-individual}. This shows the individual errors on samples of specific terminal counts. It can be observed that such a sharp drop in performance is usually caused by the model trying to lower the error on samples with specific terminal counts, probably by adjusting predictions generally toward the mean of that terminal count, which causes high error on samples with different terminal counts. In the following epochs, the model usually rectifies its mistake. This behaviour could be observed consistently over multiple training runs and across similar network architectures.
@@ -293,6 +295,12 @@ Figure \ref{fig:rnn-training} shows the training histories of two different \gls
 Another interesting observation is the fact that evaluation error frequently drops below training error, which seems to imply the model is better in predicting on unknown data than it is on known samples. This, however, is due to the way error computation is implemented in the \gls{tf} framework\cite{keras-faq-web}. The training error of an epoch is computed as the mean of the training error on all batches at the point they are used for training. Therefore, the error on the first batches is computed in a different network state than the error on the later batches. As the model usually improves during an epoch, this causes the training error to be higher than expected. Similarly, a decrease in overall performance might appear as overfitting due to validation error rising faster than the training error. The red bar in the \gls{RNN} training history plots shows the expected \textit{reference train error} after the last epoch.
 
 Like the \glspl{CNN}, the trained model is saved and can be deployed analogously. However, due to the custom training loop, early stopping and checkpointing are implemented explicitly, as the predefined callbacks can not be used in this scenario.
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{plots/rnn-training-history-individual-3_lstm_layers_2_dense_layers_inflating.png}
+	\caption{Individual validation error histories for different terminal counts. Error on high and medium/low terminal counts partially counteracting.}
+	\label{fig:rnn-training-individual}
+\end{figure}
 
 \section{Integration}
 
@@ -303,6 +311,8 @@ For the integration of the \glspl{NN} into \gls{VPR}, which is implemented in C+
 The \glspl{NN} themselves are saved in the \gls{tf} SavedModel format, which facilitates portability across language bindings of the \gls{tf} framework. 
 	
 As the models are only used for inference, and will no longer be trained, the optimizer is not included in the saved model to save space.
+
+\pagebreak
 
 \subsection{\gls{tf} C API}\label{ch:tf-c-compile}
 

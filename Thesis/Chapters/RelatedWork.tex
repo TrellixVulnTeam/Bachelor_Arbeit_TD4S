@@ -19,7 +19,7 @@ Hardware synthesis is the process of automatically translating an abstract high-
 	\label{fig:hardware-synthesis}
 \end{figure}
 
-The open-source \gls{VTR} project\cite{vtr8} provides a complete workflow of Verilog-to-Hardware translation for \gls{FPGA} architectures. It is targeted at research rather than production and as such also includes various visualisation utilities and benchmarks of different sizes.
+The open-source \gls{VTR} project\cite{vtr8} provides a complete workflow of Verilog-to-Hardware translation for \newline\noindent\gls{FPGA} architectures. It is targeted at research rather than production and as such also includes various visualisation utilities and benchmarks of different sizes.
 
 This workflow, depicted in Figure \ref{fig:hardware-synthesis}, consists of three separate subprojects which can be run in series, but also independently: 
 
@@ -49,6 +49,8 @@ Placement is the process of assigning physical locations and orientations to the
 
 The blocks need to be connected physically according to the logical connections listed in the netlist. Therefore, placing connected blocks close to each other reduces both the consumption of limited wiring resources and signal delays, which impose a hard limit on the possible clock frequency of sequential logic.
 
+\pagebreak
+
 In \gls{VPR}, the search for an optimal placement is conducted via a classical simulated annealing algorithm. Possible moves are the swapping of a block's position with another free or occupied valid position. The acceptance criterium of a move is the overall reduction of estimated wiring costs, and moves increasing this cost are accepted only with a certain variable probability.
 
 Over a run of the algorithm, the temporary placement converges towards a weighted local minimum of summed up estimated wiring costs and critical path length. Due to the ability to accept worsening moves, the simulated annealing algorithm can escape bad local minima and to generally produce "good" results. However, as it is a heuristic, no guarantees about the quality of the solution are given.
@@ -64,6 +66,8 @@ Once the blocks are placed, they still need to be connected physically. A straig
 While smart placement can already minimize the need for crossing wires, a certain amount usually remains unavoidable on large circuits. On static architectures like \gls{PCB} or Silicon, this is usually compensated by introducing multiple physical layers via which wires can evade. On \glspl{FPGA} however, wires have to be routed through a grid of connection fabric, where each edge consists of a number of parallel wires called channels, which can be freely connected with any adjacent channel at intersection points by configuring a programmable connection matrix.
 
 These limits in available wiring space/resources cause local bottlenecks, which usually require some of the nets to be connected non-ideally to meet global constraints and minimize resource usage. The process of specifying the physical wiring of all nets under global and local constraints is called Routing.
+
+\pagebreak
 
 \gls{VPR} uses a greedy heuristic known as "rip-up and re-route" to achieve Routing. This roughly means routing net after net optimally using only the currently remaining resources. Once it is not possible at all to route a net because there are no resources left that would connect all the terminals, the algorithm backtracks and un-routes certain nets, freeing their routing resources\cite{vtr8}.
 
@@ -87,6 +91,8 @@ Therefore, computing the \gls{RSMT} is impractical and instead a very simple heu
 
 \gls{HPWL} is defined as half the perimeter of the axis-aligned minimal \gls{BB} of the terminals connected by the net. It is trivially exact for the case of one and two sinks and provides a lower bound to the minimal wiring cost outside this restriction. 
 
+\pagebreak
+
 With increasing sink count, however, this heuristic tends to underestimate the real cost. To combat this behaviour, \gls{VPR} weighs \gls{HPWL} with empirically determined factors relative to the terminal count of a net. While this invalidates the lower-bound property, it generally produces substantially better results than pure \gls{HPWL}.
 
 The reason such a simple and possibly inaccurate estimator was chosen is its efficiency: if the \gls{BB} of a net is known, the \gls{HPWL} can be computed in constant time. As the \glspl{BB} of each affected net are updated whenever a block is moved, which is again highly efficient and does not add to the asymptotic complexity of the Placement algorithm (as moves are at the same level of the program loop as computing the wiring cost, and updating all affected \glspl{BB} is less complex than this).
@@ -105,6 +111,8 @@ While \gls{RSMT} provides the exact minimum possible wirelength, it is an np-har
 
 The clique model is in quality roughly equivalent to \gls{HPWL}\cite{star-plus-paper} while being more complex and therefore inferior.
 
+\pagebreak
+
 The star+ model, on the other hand, can be computed in constant time like \gls{HPWL} but outperforms it measurably. This model estimates the wirelength of a net as the sum of distances from each terminal to the geometric centre of the net. It, therefore, processes more information than the simple \gls{HPWL} model, while still enabling a highly efficient computation\cite{star-plus-paper}.
 
 \section{Neural Networks}
@@ -120,6 +128,8 @@ Neural Networks are universal function approximators based on a network of linea
 They usually consist of a layered structure of interconnected artificial neurons, essentially small units, which perform a linear combination of multiple inputs and produce a single output by adjusting that value through a non-linear activation function.
 
 In their basic type, connections between neurons exist only from neurons in one layer to those in the directly adjacent higher layer. This creates a strict feed-forward semantic for prediction, and the weights of the linear combinations can be efficiently updated using a process called backpropagation.
+
+\pagebreak
 
 \subsection{Regression}
 
@@ -150,13 +160,15 @@ With their inherent ability to detect localized structures, \glspl{CNN} perform 
 
 \subsection{\glspl{RNN}}
 
-\begin{figure}
+\glspl{RNN} contain a feedback loop, as depicted in Figure \ref{fig:recurrent-layer}, breaking the strict one-way forward pass semantic of usual \glspl{NN}. This causes \glspl{RNN} to contain state, enabling them to process sequences of related inputs, creating a single prediction for a sequence of input tensors.
+
+\pagebreak
+
+\begin{figure}[H]
 	\includegraphics[width=\textwidth]{plots/recurrent-layer.png}
 	\caption{Visualisation of the concept of \glspl{RNN}, feeding back the output of the current \textit{timestep} as input to the next one. (source: \cite{recurrent-layer-plot})}
 	\label{fig:recurrent-layer}
 \end{figure}
-
-\glspl{RNN} contain a feedback loop, as depicted in Figure \ref{fig:recurrent-layer}, breaking the strict one-way forward pass semantic of usual \glspl{NN}. This causes \glspl{RNN} to contain state, enabling them to process sequences of related inputs, creating a single prediction for a sequence of input tensors.
 
 \glspl{RNN} are usually used where the ordering of the input sequences contains relevant information, e.g. temporal sequences of sensor readings.
 
@@ -172,6 +184,8 @@ Therefore, we believe \glspl{NN} could be suited as a wiring cost estimator by p
 
 They are expected to produce vastly more accurate estimations than the \gls{HPWL} metric, close to the real optimal wiring cost. Although they will also take substantially more computational effort than \gls{HPWL}, the increased accuracy could help the simulated annealing placement algorithm to correctly judge the effects of its moves, which is an essential part of the algorithm. This might increase the resulting overall placement quality enough to be able to outperform the unchanged \gls{VPR} on the quality/runtime trade-off. This might enable it to produce higher quality results at the same actual runtime, by adjusting the moves per temperature level, at least on part of the runtime domain.
 
+\pagebreak
+
 \subsubsection{Target Function}
 
 Training a \gls{NN} using supervised learning requires training examples consisting of sample inputs and their expected prediction value, in this case terminal coordinates and the minimum wiring cost.
@@ -184,7 +198,7 @@ As the goal is to achieve optimal final results for the placed and routed circui
 
 The deployment of \gls{ML} to \gls{FPGA} hardware synthesis is still rare\cite{routability-estimator}, and we identified only a few publications closely related to our work. 
 
-While there is one paper seemingly covering the same topic as this thesis, it is hidden behind a paywall, and the accessible abstract does not disclose much useful information\cite{doi:10.1142/S0218213098000202}.
+While there is one paper seemingly covering the same topic as this thesis, it is hidden behind a paywall, and the accessible abstract does not disclose much useful information\cite{doi:10.1142/S0218213098000202}. Furthermore, it was published more than 20 years ago. This might make some of the results obsolete due to significant progress in both soft- and hardware.
 
 In "Neural network based pre-placement wirelength estimation"\cite{pre-placement-estimation}, Liu et al. deploy \glspl{NN} to estimate wirelengths, however not on individual temporary net placements, but on whole circuits definitions.
 

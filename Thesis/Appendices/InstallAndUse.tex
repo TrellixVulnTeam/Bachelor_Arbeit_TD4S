@@ -27,9 +27,9 @@ The full code of this project is publicly available at GitHub\cite{this-project}
 
 To obtain all files necessary to use this project (except the \gls{tf} C library), a simple \textit{clone} of the git repository is sufficient. The \textit{master} branch contains the full functionality.
 
-Changes to existing \gls{VPR} files are mainly located in \textit{[Project Root]/VPR\_Project/vpr/src/place.cpp}, the respective header file \textit{place.h}, and in \textit{[Project Root]/VPR\_Project/vpr/CMakeLists.txt} (\gls{tf} linking information). The remaining code of the modified \gls{VPR} Placer is located in \textit{[Project Root]/VPR\_Project/vpr/src/training\_data\_generation} and \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration}.
+Changes to existing \gls{VPR} files are mainly located in \textit{[Project Root]/VPR\_Project/vpr/src/place.cpp}, the respective header file \textit{place.h}, and in \textit{[Project Root]/VPR\_Project/vpr/CMakeLists.txt} (\gls{tf} linking information). The remaining code of the modified \gls{VPR} Placer is located in \textit{[Project Root]/VPR\_Project/vpr/src/training\_data\_gener}\linebreak\noindent \textit{ation} and \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration}.
 
-To use the python scripts, it is necessary to install the python modules listed in \textit{[Project Root]/NeuronalNetworks/combined\_project/requirements.txt}.
+To use the python scripts, it is necessary to install the python modules listed in \textit{[Project Root]/NeuronalNetworks/combined\_project/requireme}\linebreak\noindent \textit{nts.txt}.
 
 \subsection{\gls{tf} C Library}
 
@@ -39,7 +39,7 @@ Pre-built versions of this library are available in the official \gls{tf} releas
 
 On windows, the \textit{tensorflow.dll} dynamic link library needs to be on the Path. If it is located in the correct subfolder of the \gls{VPR} project (\textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/lib/}), our evaluation python-scripts will automatically ensure this by adding that specific subfolder to the Path before executing \gls{VPR}.
 
-As the compiled \gls{tf} C library is too large for standard git (>\SI{100}{\mega\byte}), it is not included in the project repository. Instead, it is handed in together with this thesis in a zip file.
+As the compiled \gls{tf} C library is too large for standard git (>\SI{100}{\mega\byte}), it is not included in the project repository. Instead, it is handed in in a zip file aside this thesis.
 
 \subsection{Trained Models, Evaluation Results and Misc Large Files}
 
@@ -71,9 +71,9 @@ Deploying a different trained \gls{NN} than our already deployed pre-trained mod
 
 First, the signature of the model has to be inspected using the \textit{saved\_model\_cli} tool included in \gls{tf} to acquire the name of the entry point used to pass data to the model. A tutorial for this process can be found at \cite{tf-inspect-savedmodel}.
 
-Then, this entry point name has to be specified in the appropriate compile-time variable in \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/neural\_network.h}.
+Then, this entry point name has to be specified in the appropriate compile-time variable in \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integratio}\linebreak\noindent \textit{n/neural\_network.h}.
 
-Alternatively, it is possible to change the signature definition of a saved model to fit the predefined entry points \textit{serving\_default\_lstm\_renamed\_input} or \textit{serving\_default\_flatten\_8\_input}. An experimental implementation of this process, described and explained in \cite{rename-savedmodel}, is included in our project as \textit{[Project Root]/NeuronalNetworks/combined\_project/fix\_model\_signatures.py}. This script adjusts the signatures of all models created and saved in the default locations (\textit{[Project Root]/NeuronalNetworks/combined\_project/models/[specific subfolder]}) by our \gls{NN} training scripts.
+Alternatively, it is possible to change the signature definition of a saved model to fit the predefined entry points \textit{serving\_default\_lstm\_rena}\linebreak\noindent \textit{med\_input} or \textit{serving\_default\_flatten\_8\_input}. An experimental implementation of this process, described and explained in \cite{rename-savedmodel}, is included in our project as \textit{[Project Root]/NeuronalNetworks/combined\_project/fix\_mo}\linebreak\noindent \textit{del\_signatures.py}. This script adjusts the signatures of all models created and saved in the default locations (\textit{[Project Root]/NeuronalNetworks/com}\linebreak\noindent \textit{bined\_project/models/[specific subfolder]}) by our \gls{NN} training scripts.
 
 Finally, the saved model has to be copied to the correct location, \textit{[Project Root]/VPR\_Project/vpr/src/ml\_integration/model\_[type]/}, where \textit{type} is either \textit{cnn} or \textit{rnn}.
 

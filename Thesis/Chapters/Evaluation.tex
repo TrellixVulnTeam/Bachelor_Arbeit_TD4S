@@ -13,13 +13,15 @@ First describing our method of evaluation as well as the specific settings used,
 
 \subsection{Selected Benchmarks}\label{ch:benchmarks}
 
-For the final evaluation, we select three circuits from the \gls{VPR} benchmark suite that were not used in any prior part of this project, namely \textit{mcml.blif}, \textit{or1200.blif}, and \textit{diffeq2.blif}. These circuits are selected quasi-randomly from the \textit{small} circuits of the \gls{VTR} benchmark suite. The reasons for this choice are limited resources for the evaluation as well as a performance issue detailed in Section \ref{ch:Justification}.
+For the final evaluation, three circuits from the \gls{VPR} benchmark suite are selected that were not used in any prior part of this project, namely \textit{mcml.blif}, \textit{or1200.blif}, and \textit{diffeq2.blif}. These circuits are selected quasi-randomly from the \textit{small} circuits of the \gls{VTR} benchmark suite. The reasons for this choice are limited resources for the evaluation as well as a performance issue detailed in Section \ref{ch:Justification}.
 
 In the same manner, we also select an \textit{evaluation} set of one circuit (\textit{raygentop.blif}), which will be needed for our chosen method of model selection, detailed in Section \ref{ch:model-selection}. This set is intentionally small to keep the computational effort of model selection manageable.
 
 As the \gls{VPR} Placement algorithm is a pseudo-randomized heuristic not guaranteed to yield reproducible results (when starting from a different state), each evaluation on each of this circuits will be performed with 3 redundant placing attempts with different random seeds to ensure robust results. 
 
-Finally, the median of the three performance scores is chosen rather than the mean, which makes our evaluation robust against outliers.
+Finally, the median of the three performance scores is chosen rather than the mean, which reduces the effects of outliers.
+
+\pagebreak
 
 \subsection{Runtime/Quality Trade-off}
 
@@ -33,11 +35,13 @@ Our metric of choice is runtime/quality trade-off, specifically discretely sampl
 	\item 1250 * t\textsubscript{p}, or \textit{sampling point 1250}
 \end{itemize}
 
-The actual runtime, while not A-Priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{inner\_num} setting of \gls{VPR}\cite{vtr8}. 
+The actual runtime, while not a priori \textit{predictable} for a certain configuration of the modified \gls{VPR} Placer, can easily be \textit{controlled} with the \textit{inner\_num} setting of \gls{VPR}\cite{vtr8}. 
 
-Based on observations we state without formal proof that most of the computations of the \gls{VPR} Placer are performed inside each of these steps. Furthermore, while steps perform random actions and can have vastly differing runtime, within a certain \textit{temperature level} steps with different runtimes are distributed randomly, and the number of steps per temperature is generally high. Therefore, changing this number of steps will not change the distribution of step runtimes within a certain temperature-level, which means their average runtime remains approximately the same. Therefore, changes to the \textit{inner\_num} parameter, which is a linear factor for the actual number of steps performed, affect the total runtime of the modified \gls{VPR} Placer approximately linearly.
+Based on observations we state without formal proof that most of the computations of the \gls{VPR} Placer are performed inside each of these steps. Furthermore, steps perform random actions and can have vastly differing runtimes. Within a certain \textit{temperature level} steps with different runtimes are distributed randomly and the number of steps per temperature is generally high. Therefore, changing this number of steps will not change the distribution of step runtimes within a certain temperature-level, which means their average runtime remains approximately the same. Therefore, changes to the \textit{inner\_num} parameter, which is a linear factor for the actual number of steps performed, affect the total runtime of the modified \gls{VPR} Placer approximately linearly.
 
 By placing a benchmark circuit using a fixed setting for \textit{inner\_num}, the runtime at this setting is acquired. As early experiments showed that the runtime of the \gls{VPR} Placer using \glspl{NN} is one to two orders of magnitude slower than using \gls{HPWL}, this value is set to $0.01*num\_blocks^(4/3)$, which equals one-hundredth of the default value of the \gls{VPR} Placer. Therefore, this first check is estimated to take approximately as much time as the unchanged \gls{VPR} at sampling point 1.
+
+\pagebreak
 
 Now, \textit{inner\_num} can be scaled appropriately to gain quality scores at each sampling point.
 
@@ -66,6 +70,8 @@ The thus computed quality/runtime trade-off is then compared with that of the un
 
 The \gls{VPR} Router primarily optimizes the \textit{channel width}, or maximum number of parallel routing channels used by the routing, by determining the minimum routable value via binary search. Therefore we select \textit{channel width} as the primary evaluation metric. In the final evaluation, we will, however, also compare critical path lengths, as this, being \gls{VPR}'s secondary optimization target, defines the maximum operable frequency of the circuit, directly influencing its computational capabilities.
 
+\pagebreak
+
 \section{Model Selection}\label{ch:model-selection}
 
 Although \glspl{NN} automatically tune their parameters to fit the target function, the structure and properties of the network itself has to be specified explicitly. While recent works try to automate even this, it is usually still necessary to manually design networks to achieve good results.
@@ -77,6 +83,8 @@ During model selection, \glspl{CNN} and \glspl{RNN} are evaluated independently 
 Typically, a first working design is found empirically through experimentation, based largely on best practices, related works, and intuition. In this case, the strict requirements on the runtime of the networks restricted the search space considerably, and the model candidates described in Chapters \ref{ch:cnn-design} and \ref{ch:rnn-design} represent the obvious choices for small and simple networks.
 
 From these candidates, the best one is selected by evaluating each independently on evaluation data different from the training and the final test data, and comparing the results.
+
+\pagebreak
 
 \subsection{\gls{HPO}}
 
@@ -105,64 +113,6 @@ As these groups of candidates are generated from discrete parameters, e.g. dense
 
 By evaluating the \gls{NN} candidates on the evaluation set at sampling point 10 we determine their relative performance. A visualization of the results in Figure \ref{fig:eval-hyperopt-surface} clearly shows a correlation between network complexity and routing quality: Smaller networks produce better results, with the exception of \glspl{CNN} without convolutional layers. These models, using less time for a prediction, allow for a higher number of moves per temperature step, although producing less accurate predictions than their more complex counterparts. The properties of convolutional layers, while computationally being rather expensive (at least compared to the "tiny" dense layers), seem to be beneficial to accurately predict the wiring cost. As the \gls{LSTM} layers of the \glspl{RNN} are required to encode the input data for the following dense layers, their suitedness to the problem can not be measured that easily.
 
-\begin{table}
-	\resizebox{\textwidth}{!}{
-	\begin{tabular}{lllrr}
-		\toprule
-		&           &   &  channel\_width &  critical\_path \\
-		conv\_layer & structure & kernel &                &                   \\
-		count &  & size &                &                   \\
-		\midrule
-		0 & deflating & -1 &           80.0 &           6.27 \\
-		& inflating & -1 &           80.0 &           6.26 \\
-		1 & deflating & 3 &           78.0 &           7.21 \\
-		&           & 7 &           78.0 &           6.66 \\
-		& inflating & 3 &           82.0 &           6.58 \\
-		&           & 7 &           78.0 &           6.12 \\
-		2 & deflating & 3 &           80.0 &           6.61 \\
-		&           & 7 &           80.0 &           7.22 \\
-		& inflating & 3 &           80.0 &           7.14 \\
-		&           & 7 &           78.0 &           6.81 \\
-		\bottomrule
-	\end{tabular}
-	}
-	\caption{Results of \gls{CNN} HPO. Median of reached scores for each model variant.}
-	\label{table:cnn-hyperopt-results}
-\end{table}
-
-\begin{table}
-	\resizebox{\textwidth}{!}{
-	\begin{tabular}{lllrr}
-		\toprule
-		&   &           &  channel\_width &  critical\_path \\
-		lstm\_layer & dense\_layer & structure &                &                   \\
-		count & count &  &                &                   \\
-		\midrule
-		1 & 1 & bloating &           78.0 &              6.83 \\
-		&   & deflating &           80.0 &              6.82 \\
-		&   & inflating &           78.0 &              7.03 \\
-		& 2 & bloating &           80.0 &              7.47 \\
-		&   & deflating &           78.0 &              6.83 \\
-		&   & inflating &           80.0 &              6.56 \\
-		2 & 1 & bloating &           80.0 &              6.82 \\
-		&   & deflating &           82.0 &              7.14 \\
-		&   & inflating &           82.0 &              7.50 \\
-		& 2 & bloating &           84.0 &              7.06 \\
-		&   & deflating &           82.0 &              6.97 \\
-		&   & inflating &           78.0 &              6.95 \\
-		3 & 1 & bloating &           84.0 &              7.44 \\
-		&   & deflating &           84.0 &              7.40 \\
-		&   & inflating &           86.0 &              7.47 \\
-		& 2 & bloating &           86.0 &              7.70 \\
-		&   & deflating &           86.0 &              7.44 \\
-		&   & inflating &           86.0 &              7.69 \\
-		\bottomrule
-	\end{tabular}
-	}
-	\caption{Results of \gls{RNN} HPO. Median of reached scores for each model variant.}
-	\label{table:rnn-hyperopt-results}
-\end{table}
-
 The exact results are presented in Table \ref{table:cnn-hyperopt-results} and Table \ref{table:rnn-hyperopt-results} (for information about the performance at each individual placement attempt see Appendix \ref{ch:AdditionalData}). We thus select \textit{1\_conv\_layers\_deflating\_kernel\_size\_7} and \textit{1\_lstm\_layers\_1\_dense\_layers\_inflating} as the best \gls{CNN} and \gls{RNN} models, respectively. 
 
 Note that these choices might not be obvious. Indeed, also factoring in the achieved critical path length, these are not the best models with respect to median performance. However, as we decided to only consider channel width for the \gls{HPO}, the critical path length was not considered at this point. Instead, average (mean) and best (minimum) performance on channel width were used to resolve ties.
@@ -190,6 +140,68 @@ Note that these choices might not be obvious. Indeed, also factoring in the achi
 
 By comparing the performance to that of the unchanged \gls{VPR} Placer we can, however, see that none of the \glspl{NN} is able to beat \gls{HPWL} at sampling point 10, at least on the evaluation set (see Figure \ref{fig:eval-hyperopt-surface-reference}).
 
+\pagebreak
+
+\begin{table}[H]
+	\resizebox{\textwidth}{!}{
+		\begin{tabular}{lllrr}
+			\toprule
+			&           &   &  channel\_width &  critical\_path \\
+			conv\_layer & structure & kernel &                &                   \\
+			count &  & size &                &                   \\
+			\midrule
+			0 & deflating & -1 &           80.0 &           6.27 \\
+			& inflating & -1 &           80.0 &           6.26 \\
+			1 & deflating & 3 &           78.0 &           7.21 \\
+			&           & 7 &           78.0 &           6.66 \\
+			& inflating & 3 &           82.0 &           6.58 \\
+			&           & 7 &           78.0 &           6.12 \\
+			2 & deflating & 3 &           80.0 &           6.61 \\
+			&           & 7 &           80.0 &           7.22 \\
+			& inflating & 3 &           80.0 &           7.14 \\
+			&           & 7 &           78.0 &           6.81 \\
+			\bottomrule
+		\end{tabular}
+	}
+	\caption{Results of \gls{CNN} HPO. Median of reached scores for each model variant.}
+	\label{table:cnn-hyperopt-results}
+\end{table}
+
+\begin{table}[H]
+	\resizebox{\textwidth}{!}{
+		\begin{tabular}{lllrr}
+			\toprule
+			&   &           &  channel\_width &  critical\_path \\
+			lstm\_layer & dense\_layer & structure &                &                   \\
+			count & count &  &                &                   \\
+			\midrule
+			1 & 1 & bloating &           78.0 &              6.83 \\
+			&   & deflating &           80.0 &              6.82 \\
+			&   & inflating &           78.0 &              7.03 \\
+			& 2 & bloating &           80.0 &              7.47 \\
+			&   & deflating &           78.0 &              6.83 \\
+			&   & inflating &           80.0 &              6.56 \\
+			2 & 1 & bloating &           80.0 &              6.82 \\
+			&   & deflating &           82.0 &              7.14 \\
+			&   & inflating &           82.0 &              7.50 \\
+			& 2 & bloating &           84.0 &              7.06 \\
+			&   & deflating &           82.0 &              6.97 \\
+			&   & inflating &           78.0 &              6.95 \\
+			3 & 1 & bloating &           84.0 &              7.44 \\
+			&   & deflating &           84.0 &              7.40 \\
+			&   & inflating &           86.0 &              7.47 \\
+			& 2 & bloating &           86.0 &              7.70 \\
+			&   & deflating &           86.0 &              7.44 \\
+			&   & inflating &           86.0 &              7.69 \\
+			\bottomrule
+		\end{tabular}
+	}
+	\caption{Results of \gls{RNN} HPO. Median of reached scores for each model variant.}
+	\label{table:rnn-hyperopt-results}
+\end{table}
+
+\pagebreak
+
 \section{Results}
 
 With a single network per type, the modified \gls{VPR} Placer can now be evaluated against the unchanged version (reference system).
@@ -212,9 +224,9 @@ With a single network per type, the modified \gls{VPR} Placer can now be evaluat
 	\label{fig:eval-chan-width-median}
 \end{figure}
 
-Figure \ref{fig:eval-chan-width-median} shows the achieved channel widths for the reference system and our \gls{CNN} and \gls{RNN} versions on the test set. Our modified placer using \glspl{NN} is able to significantly outperform the reference system on one of the small circuits and manages to match it on the other (top), but is inferior on the larger one (bottom left). 
+Figure \ref{fig:eval-chan-width-median} shows the achieved channel widths for the reference system and our \gls{CNN} and \gls{RNN} versions on the test set. Our modified placer using \glspl{NN} is able to significantly outperform the reference system on one of the small circuits (top left) and manages to match it on the other (top right), but is inferior on the larger one (bottom left). 
 
-When combining the results on all three circuits with equal weights, the reference system has higher performance overall. However, even being able to perform better on \textit{some} circuits can be seen as an improvement, as placing with both the modified and the reference system and individually selecting the better result is also a viable option.
+When combining the results on all three circuits with equal weights (bottom right), the reference system has higher performance overall. However, even being able to perform better on \textit{some} circuits can be seen as an improvement, as placing with both the modified and the reference system and individually selecting the better result is also a viable option.
 
 \begin{figure}
 	\centering
@@ -236,7 +248,7 @@ When combining the results on all three circuits with equal weights, the referen
 
 What's more, the quality/runtime trade-offs of both our modified systems show a significant downward trend. While this is not that clearly visible in the achieved channel widths on both smaller circuits, it is very pronounced in the critical path delays shown in Figure \ref{fig:eval-critical-path-median}. This could imply its performance relative to the reference system might increase further beyond the domain we evaluated, i.e. for larger sampling points. However, the quasi-logarithmic scale of the x-axes of these Figures might make this trend seem steeper than it is.
 
-Equivalent Figures showing mean and minimum instead of median can be found in the Appendix \ref{ch:AdditionalData}.
+Equivalent Figures showing mean and minimum instead of median can be found in Appendix \ref{ch:AdditionalData}.
 
 One can also observe that while the \gls{CNN} version initially always beats the \gls{RNN} version, the performance difference clearly diminishes on higher sampling points. The \gls{RNN} version, however, seems less stable than the \gls{CNN} version, which consistently shows a smooth curve. Therefore, we would declare \glspl{CNN} to be the superior approach based on the available data, but \glspl{RNN} should not be excluded from further evaluations until stronger evidence is available.
 
@@ -313,7 +325,7 @@ Regarding the first reason, both goals of this thesis have been fulfilled. We pr
 
 \subsubsection{Issues}
 
-Furthermore, while evaluation on our selected test set and sampling points completes within the scale of several hours to one day, we noticed a disproportionate increase in runtime for larger circuits. While the time needed for placing the circuit matched our expectations (based on the formula for computing the number of moves per temperature level), for some reason it becomes nearly impossible to route large circuits placed with the modified placer. A single routing step, which is performed in the manner of seconds when routing a placement produced by the reference system, reaches runtimes of more than an hour on a placement produced by our \gls{NN} based approach. 
+Furthermore, while evaluation on our selected test set and sampling points completes within the scale of several hours to one day, we noticed a disproportionate increase in runtime for larger circuits. While the time needed for placing the circuit matched our expectations (based on the formula for computing the number of moves per temperature level), for yet unknown reasons it becomes nearly impossible to route large circuits placed with the modified placer. A single routing step, which is performed in the manner of seconds when routing a placement produced by the reference system, reaches runtimes of more than an hour on a placement produced by our \gls{NN} based approach. 
 
 \begin{figure}
 	\begin{subfigure}[b]{0.49\linewidth}
@@ -336,6 +348,8 @@ Furthermore, while evaluation on our selected test set and sampling points compl
 	\label{fig:eval-problem-logs}
 \end{figure}
 
+\pagebreak
+
 \subsubsection{Possible Reasons}
 
 We further noticed a substantial increase of reported \textit{average \gls{BB} cost}, or average estimated wirelength, during placement (see Figure \ref{fig:eval-problem-logs}). This roughly tenfold increase might originate from the different target values of the used wire length estimators. Pure \gls{HPWL} is a lower bound to the actual wiring cost, and even the corrected/scaled \gls{HPWL} used in \gls{VPR} can be assumed to generally underestimate large nets. As our \glspl{NN} try to predict the actual wirelength and might make errors in both directions, a certain increase in average placement driven cost is not surprising.
@@ -346,6 +360,8 @@ This change in the general scale of the \gls{BB} cost could also have incurred o
 
 However, seeing as the simulated annealer still converges as in the unchanged system, those effects should not be too strong. The eventual decrease in estimated \gls{BB} cost of the temporary placement matches that of the reference system.
 
+\pagebreak
+
 This issue was only noticed in the final phase of this work when large circuits were placed with the modified placer and subsequently routed for the first time. Therefore, we were only able to perform basic tests and analysis.
 
 \subsection{Future Work}
@@ -354,6 +370,6 @@ As such, it is left as future work to identify and solve this issue. Once this i
 
 If this system is evaluated further, it would also be appropriate to raise the number of redundant placements, which would allow for quantifying one's confidence in in the evaluation results, as Xu et al. do in \cite{star-plus-paper}.
 
-Apart from that, it might prove worthwhile to profile the modified system and check for performance bottlenecks. Especially the \gls{tf} interface seems overly complicated for such a simple network, and for using only online prediction. Therefore, optimising the integration of the \gls{NN} might reduce the complexity of this runtime critical part of the system.
+Apart from that, it might prove worthwhile to profile the modified system and check for performance bottlenecks. Especially the \gls{tf} interface seems overly complicated for such a simple network and for only using online prediction. Therefore, optimising the integration of the \gls{NN} might reduce the complexity of this critical part for the runtime of the system.
 
 Last but not least, optimising the \glspl{NN} themselves could also yield further improvements.
